@@ -1,0 +1,110 @@
+services:
+    caddy:
+        container_name: caddy
+        image: docker.zachklingbeil.com/caddy
+        volumes:
+            - caddy:/data/caddy
+            - ./Caddyfile:/etc/caddy/Caddyfile
+        networks:
+            - timefactory
+        ports:
+            - 443:443
+            - 443:443/udp
+        environment:
+            - CF_API_TOKEN=${CF_API_TOKEN}
+        restart: always
+
+    postgres:
+        container_name: postgres
+        image: postgres:alpine
+        volumes:
+            - postgres:/var/lib/postgresql/data
+        networks:
+            - timefactory
+        expose:
+            - 5432
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_HOST: db
+            POSTGRES_PORT: 5432
+            POSTGRES_DB: postgres
+        restart: unless-stopped
+        pull_policy: always
+
+    redis:
+        image: redis
+        container_name: redis
+        expose:
+            - 6379
+        volumes:
+            - redis:/data
+            - ./redis.conf:/usr/local/etc/redis/redis.conf
+        command:
+            [
+                'redis-server',
+                '/usr/local/etc/redis/redis.conf',
+                '--requirepass',
+                '$REDIS_PASSWORD',
+            ]
+        environment:
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
+        networks:
+            - timefactory
+        restart: unless-stopped
+
+    registry:
+        container_name: registry
+        image: registry
+        expose:
+            - 5000
+        volumes:
+            - registry:/registry
+            - ./auth/:/auth
+        networks:
+            - timefactory
+        environment:
+            REGISTRY_AUTH: htpasswd
+            REGISTRY_AUTH_HTPASSWD_REALM: Registry
+            REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+            REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
+            REGISTRY_HTTP_SECRET: ${REGISTRY_PW}
+            REGISTRY_STORAGE_CACHE_BLOBDESCRIPTOR: redis
+            REGISTRY_REDIS_ADDR: redis:6379
+        restart: always
+    ollama:
+        container_name: ollama
+        image: ollama/ollama
+        volumes:
+            - ollama:/root/.ollama
+        networks:
+            - timefactory
+        expose:
+            - 11434
+        environment:
+            - OLLAMA_KEEP_ALIVE=30m
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          capabilities: [gpu]
+                          count: all
+        pull_policy: always
+        restart: unless-stopped
+
+networks:
+    timefactory:
+        external: true
+
+volumes:
+    caddy:
+        external: true
+    ollama:
+        external: true
+    postgres:
+        external: true
+    redis:
+        external: true
+    registry:
+        external: true

@@ -1,0 +1,38 @@
+(constants) {
+   tls {
+      dns cloudflare {env.CF_API_TOKEN}
+      resolvers 1.1.1.1 1.0.0.1
+   }
+   encode gzip
+}
+
+(auth) {
+   basicauth {
+      zk $2a$14$4wVhC8O6OLnYgg.3.6N.DuQGf6k2L4lKnKnDuPQO6/fVdZ.b99dRm
+   }
+}
+
+{
+	admin off
+}
+
+zachklingbeil.com {
+	import constants
+	reverse_proxy webui:8080
+}
+
+docker.zachklingbeil.com {
+	import constants
+	reverse_proxy /v2/* registry:5000
+}
+
+db.zachklingbeil.com {
+	import constants
+	reverse_proxy pgadmin:80
+}
+
+redis.zachklingbeil.com {
+	import constants
+	import auth
+	reverse_proxy insight:5540
+}

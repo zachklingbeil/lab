@@ -1,0 +1,60 @@
+services:
+    insight:
+        image: redis/redisinsight
+        container_name: insight
+        expose:
+            - 5540
+        volumes:
+            - insight:/data
+        networks:
+            - timefactory
+        restart: unless-stopped
+
+    pgadmin:
+        container_name: pgadmin
+        image: dpage/pgadmin4
+        volumes:
+            - pgadmin:/var/lib/pgadmin
+        networks:
+            - timefactory
+        expose:
+            - 80
+        environment:
+            PGADMIN_DEFAULT_EMAIL: zach@zachklingbeil.com
+            PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD}
+        restart: unless-stopped
+        pull_policy: always
+    webui:
+        container_name: webui
+        image: ghcr.io/open-webui/open-webui:main
+        volumes:
+            - ollama:/app/backend/data
+        networks:
+            - timefactory
+        expose:
+            - 8080
+        environment:
+            - ENABLE_SIGNUP=false # ENABLE_SIGNUP=true required for the first account.
+            - ENABLE_OLLAMA_API=true
+            - OLLAMA_BASE_URL=http://ollama:11434
+            - USE_CUDA_DOCKER=true
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          capabilities: [gpu]
+                          count: all
+        pull_policy: always
+        restart: unless-stopped
+
+volumes:
+    pgadmin:
+        external: true
+    insight:
+        external: true
+    ollama:
+        external: true
+networks:
+    timefactory:
+        external: true
