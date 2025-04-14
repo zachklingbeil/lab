@@ -69,8 +69,6 @@ services:
             REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
             REGISTRY_HTTP_SECRET: ${REGISTRY_PW}
-            REGISTRY_STORAGE_CACHE_BLOBDESCRIPTOR: redis
-            REGISTRY_REDIS_ADDR: redis:6379
         restart: always
     ollama:
         container_name: ollama
