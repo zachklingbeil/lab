@@ -35,22 +35,18 @@ services:
         pull_policy: always
 
     redis:
-        image: redis
+        image: redis/redis-stack-server
         container_name: redis
         expose:
             - 6379
         volumes:
             - redis:/data
-            - ./redis.conf:/usr/local/etc/redis/redis.conf
-        command:
-            [
-                'redis-server',
-                '/usr/local/etc/redis/redis.conf',
-                '--requirepass',
-                '$REDIS_PASSWORD',
-            ]
         environment:
+            - REDIS_USER=zk
             - REDIS_PASSWORD=${REDIS_PASSWORD}
+            - REDIS_PORT=6379
+            - REDIS_BIND=0.0.0.0
+            - REDIS_ARGS=--maxmemory 16GB --maxmemory-policy allkeys-lru
         networks:
             - timefactory
         restart: unless-stopped

@@ -1,14 +1,14 @@
 services:
-    # insight:
-    #     image: redis/redisinsight
-    #     container_name: insight
-    #     expose:
-    #         - 5540
-    #     volumes:
-    #         - insight:/data
-    #     networks:
-    #         - timefactory
-    #     restart: unless-stopped
+    insight:
+        image: redis/redisinsight
+        container_name: insight
+        expose:
+            - 5540
+        volumes:
+            - insight:/data
+        networks:
+            - timefactory
+        restart: unless-stopped
 
     pgadmin:
         container_name: pgadmin
