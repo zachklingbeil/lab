@@ -1,7 +1,8 @@
 services:
     insight:
         image: redis/redisinsight
-        container_name: insight
+        container_name: redis-insight
+        pull_policy: always
         expose:
             - 5540
         volumes:

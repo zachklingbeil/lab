@@ -50,6 +50,7 @@ services:
         networks:
             - timefactory
         restart: unless-stopped
+        pull_policy: always
 
     registry:
         container_name: registry
@@ -67,7 +68,10 @@ services:
             REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
             REGISTRY_HTTP_SECRET: ${REGISTRY_PW}
+            REGISTRY_TRACING_ENABLED: false
         restart: always
+        pull_policy: always
+
     ollama:
         container_name: ollama
         image: ollama/ollama

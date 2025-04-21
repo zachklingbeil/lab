@@ -1,15 +1,15 @@
 (constants) {
-   tls {
-      dns cloudflare {env.CF_API_TOKEN}
-      resolvers 1.1.1.1 1.0.0.1
-   }
-   encode gzip
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+		resolvers 1.1.1.1 1.0.0.1
+	}
+	encode gzip
 }
 
 (auth) {
-   basicauth {
-      zk $2a$14$4wVhC8O6OLnYgg.3.6N.DuQGf6k2L4lKnKnDuPQO6/fVdZ.b99dRm
-   }
+	basic_auth {
+		zk $2a$14$4wVhC8O6OLnYgg.3.6N.DuQGf6k2L4lKnKnDuPQO6/fVdZ.b99dRm
+	}
 }
 
 {
@@ -17,8 +17,8 @@
 }
 
 zachklingbeil.com {
-   import constants
-   redir https://github.com/zachklingbeil
+	import constants
+	redir https://github.com/zachklingbeil
 }
 
 ollama.zachklingbeil.com {

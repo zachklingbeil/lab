@@ -2,6 +2,7 @@ services:
     geth:
         image: ethereum/client-go
         container_name: geth
+        pull_policy: always
         networks:
             - timefactory
         ports:
@@ -25,6 +26,7 @@ services:
     lighthouse:
         image: sigp/lighthouse
         container_name: lighthouse
+        pull_policy: always
         networks:
             - timefactory
         ports:
