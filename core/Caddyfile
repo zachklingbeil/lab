@@ -35,9 +35,3 @@ db.zachklingbeil.com {
 	import constants
 	reverse_proxy pgadmin:80
 }
-
-redis.zachklingbeil.com {
-	import constants
-	import auth
-	reverse_proxy insight:5540
-}

@@ -1,16 +1,4 @@
 services:
-    insight:
-        image: redis/redisinsight
-        container_name: redis-insight
-        pull_policy: always
-        expose:
-            - 5540
-        volumes:
-            - insight:/data
-        networks:
-            - timefactory
-        restart: unless-stopped
-
     pgadmin:
         container_name: pgadmin
         image: dpage/pgadmin4
