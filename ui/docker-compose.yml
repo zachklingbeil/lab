@@ -10,7 +10,7 @@ services:
             - 80
         environment:
             PGADMIN_DEFAULT_EMAIL: zach@zachklingbeil.com
-            PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD}
+            PGADMIN_DEFAULT_PASSWORD: ${PASSWORD}
         restart: unless-stopped
         pull_policy: always
     webui:

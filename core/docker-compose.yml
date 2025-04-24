@@ -70,7 +70,6 @@ services:
             REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
             REGISTRY_HTTP_SECRET: ${PASSWORD}
-            REGISTRY_TRACING_ENABLED: false
         restart: always
         pull_policy: always
 

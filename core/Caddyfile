@@ -21,6 +21,11 @@ zachklingbeil.com {
 	redir https://github.com/zachklingbeil
 }
 
+lab.zachklingbeil.com {
+	import constants
+	reverse_proxy lab:80
+}
+
 ollama.zachklingbeil.com {
 	import constants
 	reverse_proxy webui:8080
