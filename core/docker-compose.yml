@@ -48,7 +48,7 @@ services:
             - REDIS_PASSWORD=${PASSWORD}
             - REDIS_PORT=6379
             - REDIS_BIND=0.0.0.0
-            - REDIS_ARGS=--maxmemory 16GB --maxmemory-policy allkeys-lru
+            - REDIS_ARGS=--maxmemory 24GB --maxmemory-policy allkeys-lru
         networks:
             - timefactory
         restart: unless-stopped
