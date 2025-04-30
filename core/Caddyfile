@@ -21,9 +21,9 @@ zachklingbeil.com {
 	redir https://github.com/zachklingbeil
 }
 
-# lab.zachklingbeil.com {
+# redis.zachklingbeil.com {
 # 	import constants
-# 	reverse_proxy lab:80
+# 	reverse_proxy redis:6379
 # }
 
 ollama.zachklingbeil.com {
@@ -40,3 +40,8 @@ db.zachklingbeil.com {
 	import constants
 	reverse_proxy pgadmin:80
 }
+
+# lab.zachklingbeil.com {
+# 	import constants
+# 	reverse_proxy lab:80
+# }
