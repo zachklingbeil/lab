@@ -74,6 +74,27 @@ services:
         restart: always
         pull_policy: always
 
+    ollama:
+        container_name: ollama
+        image: ollama/ollama
+        volumes:
+            - ollama:/root/.ollama
+        networks:
+            - timefactory
+        expose:
+            - 11434
+        environment:
+            - OLLAMA_KEEP_ALIVE=30m
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          capabilities: [gpu]
+                          count: all
+        pull_policy: always
+        restart: unless-stopped
+
 networks:
     timefactory:
         external: true
