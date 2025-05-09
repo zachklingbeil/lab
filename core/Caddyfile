@@ -42,6 +42,6 @@ db.zachklingbeil.com {
 }
 
 # lab.zachklingbeil.com {
-# 	import constants
-# 	reverse_proxy lab:80
+#	import constants
+#	reverse_proxy pdf:8080
 # }

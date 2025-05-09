@@ -1,0 +1,23 @@
+services:
+    pdf:
+        image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest-fat
+        container_name: pdf
+        expose:
+            - '8080'
+        networks:
+            - timefactory
+        volumes:
+            - pdf:/data
+        environment:
+            - DOCKER_ENABLE_SECURITY=false
+            - LANGS=en_US
+            - UI_APPNAME=Stirling PDF
+            - UI_HOMEDESCRIPTION=Your locally hosted one-stop-shop for all your PDF needs.
+            - UI_APPNAVBARNAME=Stirling PDF
+
+volumes:
+    pdf:
+        external: true
+networks:
+    timefactory:
+        external: true

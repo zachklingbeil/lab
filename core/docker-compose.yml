@@ -66,33 +66,13 @@ services:
             - timefactory
         environment:
             REGISTRY_AUTH: htpasswd
-            REGISTRY_AUTH_HTPASSWD_REALM: Registry
+            REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
             REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
             REGISTRY_HTTP_SECRET: ${PASSWORD}
+            REGISTRY_TRACING_ENABLED: false
         restart: always
         pull_policy: always
-
-    # ollama:
-    #     container_name: ollama
-    #     image: ollama/ollama
-    #     volumes:
-    #         - ollama:/root/.ollama
-    #     networks:
-    #         - timefactory
-    #     expose:
-    #         - 11434
-    #     environment:
-    #         - OLLAMA_KEEP_ALIVE=30m
-    #     deploy:
-    #         resources:
-    #             reservations:
-    #                 devices:
-    #                     - driver: nvidia
-    #                       capabilities: [gpu]
-    #                       count: all
-    #     pull_policy: always
-    #     restart: unless-stopped
 
 networks:
     timefactory:
