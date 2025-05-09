@@ -1,18 +1,24 @@
 services:
-    pgadmin:
-        container_name: pgadmin
-        image: dpage/pgadmin4
+    ollama:
+        container_name: ollama
+        image: ollama/ollama
         volumes:
-            - pgadmin:/var/lib/pgadmin
+            - ollama:/root/.ollama
         networks:
             - timefactory
         expose:
-            - 80
+            - 11434
         environment:
-            PGADMIN_DEFAULT_EMAIL: zach@zachklingbeil.com
-            PGADMIN_DEFAULT_PASSWORD: ${PASSWORD}
-        restart: unless-stopped
+            - OLLAMA_KEEP_ALIVE=30m
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          capabilities: [gpu]
+                          count: all
         pull_policy: always
+        restart: unless-stopped
     webui:
         container_name: webui
         image: ghcr.io/open-webui/open-webui:main
@@ -38,10 +44,6 @@ services:
         restart: unless-stopped
 
 volumes:
-    pgadmin:
-        external: true
-    insight:
-        external: true
     ollama:
         external: true
 networks:

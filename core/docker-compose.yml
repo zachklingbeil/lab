@@ -14,26 +14,6 @@ services:
             - CF_API_TOKEN=${CF_API_TOKEN}
         restart: always
 
-    postgres:
-        container_name: postgres
-        image: postgres:alpine
-        volumes:
-            - postgres:/var/lib/postgresql/data
-        networks:
-            - timefactory
-        expose:
-            - 5432
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: ${PASSWORD}
-            POSTGRES_HOST: db
-            POSTGRES_PORT: 5432
-            POSTGRES_DB: postgres
-        command: ['postgres', '-c', 'max_wal_size=16GB']
-
-        restart: unless-stopped
-        pull_policy: always
-
     redis:
         image: redis/redis-stack-server
         container_name: redis
@@ -74,37 +54,12 @@ services:
         restart: always
         pull_policy: always
 
-    ollama:
-        container_name: ollama
-        image: ollama/ollama
-        volumes:
-            - ollama:/root/.ollama
-        networks:
-            - timefactory
-        expose:
-            - 11434
-        environment:
-            - OLLAMA_KEEP_ALIVE=30m
-        deploy:
-            resources:
-                reservations:
-                    devices:
-                        - driver: nvidia
-                          capabilities: [gpu]
-                          count: all
-        pull_policy: always
-        restart: unless-stopped
-
 networks:
     timefactory:
         external: true
 
 volumes:
     caddy:
-        external: true
-    ollama:
-        external: true
-    postgres:
         external: true
     redis:
         external: true
