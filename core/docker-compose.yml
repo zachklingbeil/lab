@@ -15,7 +15,7 @@ services:
         restart: always
 
     redis:
-        image: redis/redis-stack-server
+        image: redis
         container_name: redis
         # expose:
         #     - 6379
