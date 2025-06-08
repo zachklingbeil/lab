@@ -21,25 +21,26 @@ zachklingbeil.com {
 	redir https://github.com/zachklingbeil
 }
 
-# redis.zachklingbeil.com {
-# 	import constants
-# 	reverse_proxy redis:6379
-# }
-
-ollama.zachklingbeil.com {
-	import constants
-	reverse_proxy webui:8080
-}
-
 docker.zachklingbeil.com {
 	import constants
 	reverse_proxy /v2/* registry:5000
 }
 
-db.zachklingbeil.com {
-	import constants
-	reverse_proxy pgadmin:80
-}
+# redis.zachklingbeil.com {
+# 	import constants
+# 	reverse_proxy redis:6379
+# }
+
+# ollama.zachklingbeil.com {
+# 	import constants
+# 	reverse_proxy webui:8080
+# }
+
+
+# db.zachklingbeil.com {
+# 	import constants
+# 	reverse_proxy pgadmin:80
+# }
 
 # lab.zachklingbeil.com {
 #	import constants

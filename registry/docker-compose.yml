@@ -4,9 +4,10 @@ services:
         image: registry
         expose:
             - 5000
+            - 5001
         volumes:
             - registry:/registry
-            - ./auth/:/auth
+            - ./htpasswd/:/auth/htpasswd
         networks:
             - timefactory
         environment:
@@ -15,7 +16,6 @@ services:
             REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
             REGISTRY_HTTP_SECRET: ${PASSWORD}
-            REGISTRY_TRACING_ENABLED: false
         restart: always
         pull_policy: always
 
