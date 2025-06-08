@@ -1,0 +1,23 @@
+services:
+    caddy:
+        container_name: caddy
+        image: docker.zachklingbeil.com/caddy
+        volumes:
+            - caddy:/data/caddy
+            - ./Caddyfile:/etc/caddy/Caddyfile
+        networks:
+            - timefactory
+        ports:
+            - 443:443
+            - 443:443/udp
+        environment:
+            - CF_API_TOKEN=${CF_API_TOKEN}
+        restart: always
+
+networks:
+    timefactory:
+        external: true
+
+volumes:
+    caddy:
+        external: true
