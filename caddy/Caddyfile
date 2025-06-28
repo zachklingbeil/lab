@@ -26,6 +26,11 @@ docker.zachklingbeil.com {
 	reverse_proxy /v2/* registry:5000
 }
 
+db.zachklingbeil.com {
+	import constants
+	reverse_proxy pgadmin:80
+}
+
 # redis.zachklingbeil.com {
 # 	import constants
 # 	reverse_proxy redis:6379
@@ -37,10 +42,6 @@ docker.zachklingbeil.com {
 # }
 
 
-# db.zachklingbeil.com {
-# 	import constants
-# 	reverse_proxy pgadmin:80
-# }
 
 # lab.zachklingbeil.com {
 #	import constants
