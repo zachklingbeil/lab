@@ -6,9 +6,15 @@
 	encode gzip
 }
 
-(auth) {
-	basic_auth {
-		zk $2a$14$4wVhC8O6OLnYgg.3.6N.DuQGf6k2L4lKnKnDuPQO6/fVdZ.b99dRm
+(apiauth) {
+	@unauthorized {
+		not {
+			header Authorization {env.API_KEY}
+		}
+	}
+
+	respond @unauthorized "Unauthorized" 401 {
+		close
 	}
 }
 
@@ -31,19 +37,13 @@ db.zachklingbeil.com {
 	reverse_proxy pgadmin:80
 }
 
-# redis.zachklingbeil.com {
-# 	import constants
-# 	reverse_proxy redis:6379
-# }
-
-# ollama.zachklingbeil.com {
-# 	import constants
-# 	reverse_proxy webui:8080
-# }
-
-
-
-# lab.zachklingbeil.com {
-#	import constants
-#	reverse_proxy pdf:8080
-# }
+lab.zachklingbeil.com {
+	import constants
+	import apiauth
+	@websocket {
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+	reverse_proxy @websocket geth:8546
+	reverse_proxy geth:8545
+}

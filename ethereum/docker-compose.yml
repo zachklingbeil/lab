@@ -15,6 +15,7 @@ services:
         volumes:
             - ethereum:/ethereum
             - ./jwt.hex:/root/jwt.hex
+            # openssl rand -hex 32 > jwt.hex
         command: >
             --ipcpath=/ethereum/geth.ipc
             --authrpc.addr 0.0.0.0
