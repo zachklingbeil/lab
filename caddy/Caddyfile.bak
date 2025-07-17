@@ -1,0 +1,85 @@
+(constants) {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 1.0.0.1
+    }
+    encode gzip
+}
+
+(apiauth) {
+    @unauthorized {
+        not {
+            header Authorization {env.API_KEY}
+        }
+    }
+
+    respond @unauthorized "Unauthorized" 401 {
+        close
+    }
+}
+
+(websocket) {
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+}
+
+(geth) {
+    import apiauth
+    reverse_proxy geth:8545
+}
+
+(gethws) {
+    import apiauth
+    import websocket
+    reverse_proxy @websocket geth:8546
+}
+
+(registry) {
+    reverse_proxy /v2/* registry:5000
+}
+
+(pgladmin) {
+    import apiauth
+    reverse_proxy pgladmin:80
+}
+
+(caddy) {
+    import apiauth
+    reverse_proxy localhost:2019
+}
+
+zachklingbeil.com {
+    import constants
+    
+    handle /api/geth* {
+        uri strip_prefix /api/geth
+        import geth
+    }
+    
+    handle /api/gethws* {
+        uri strip_prefix /api/gethws
+        import gethws
+    }
+    
+    handle /api/registry* {
+        uri strip_prefix /api/registry
+        import registry
+    }
+    
+    handle /api/db* {
+        uri strip_prefix /api/db
+        import pgladmin
+    }
+    
+    handle /api/caddy* {
+        uri strip_prefix /api/caddy
+        import caddy
+    }
+    
+    # Default redirect for root
+    handle {
+        redir https://github.com/zachklingbeil
+    }
+}

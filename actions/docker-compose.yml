@@ -1,38 +1,24 @@
 services:
     factory:
         image: myoung34/github-runner
+        container_name: factory-runner
         environment:
             REPO_URL: https://github.com/zachklingbeil/factory
-            RUNNER_NAME: example-name
-            RUNNER_TOKEN: someGithubTokenHere
+            RUNNER_NAME: factory-runner
+            RUNNER_TOKEN: ${TOKEN}
             RUNNER_WORKDIR: /runner/tmp/runner/work
             CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner # Required for persistence
-            RUNNER_SCOPE: 'repo'
+            RUNNER_SCOPE: repo
             LABELS: linux,x64,gpu
+            DISABLE_AUTOMATIC_DEREGISTRATION: true
         volumes:
-            - external_runner:/runner # Use a single external volume
-            - '/var/run/docker.sock:/var/run/docker.sock'
+            - factory:/runner # Use a single external volume
+            - /var/run/docker.sock:/var/run/docker.sock
         networks:
             - timefactory # Use external network
-
-    block:
-        image: myoung34/github-runner
-        environment:
-            REPO_URL: https://github.com/zachklingbeil/block
-            RUNNER_NAME: example-name
-            RUNNER_TOKEN: someGithubTokenHere
-            RUNNER_WORKDIR: /runner/tmp/runner/work
-            CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner # Required for persistence
-            RUNNER_SCOPE: 'repo'
-            LABELS: linux,x64,gpu
-        volumes:
-            - external_runner:/runner # Use a single external volume
-            - '/var/run/docker.sock:/var/run/docker.sock'
-        networks:
-            - timefactory # Use external network
-
+        restart: always
 volumes:
-    external_runner:
+    factory:
         external: true
 
 networks:
