@@ -1,0 +1,27 @@
+services:
+    n8n:
+        image: docker.n8n.io/n8nio/n8n
+        restart: always
+        container_name: n8n
+        environment:
+            - DB_TYPE=postgresdb
+            - DB_POSTGRESDB_HOST=postgres # Hostname matches the external service name
+            - DB_POSTGRESDB_PORT=5432
+            - DB_POSTGRESDB_DATABASE=${POSTGRES_DB} # Set in your .env file
+            - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
+            - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+            - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+        expose:
+            - 5678
+        volumes:
+            - n8n_data:/home/node/.n8n
+        networks:
+            - timefactory
+
+volumes:
+    n8n_data:
+        external: true
+
+networks:
+    timefactory:
+        external: true

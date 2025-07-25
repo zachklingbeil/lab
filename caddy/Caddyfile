@@ -47,3 +47,8 @@ lab.zachklingbeil.com {
 	reverse_proxy @websocket geth:8546
 	reverse_proxy geth:8545
 }
+
+node.zachklingbeil.com {
+	import constants
+	reverse_proxy n8n:5678
+}
