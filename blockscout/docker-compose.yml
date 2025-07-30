@@ -1,30 +1,24 @@
 services:
     frontend:
         image: ghcr.io/blockscout/frontend
+        container_name: frontend
         pull_policy: always
-
         restart: always
-        container_name: 'frontend'
         env_file:
             - ../envs/common-frontend.env
         networks:
             - timefactory
         expose:
-            - '3000'
+            - 3000
     backend:
         image: ghcr.io/blockscout/blockscout
+        container_name: backend
         pull_policy: always
         restart: always
         stop_grace_period: 5m
-        container_name: 'backend'
         command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
         env_file:
             - ../envs/common-blockscout.env
-        environment:
-            ETHEREUM_JSONRPC_HTTP_URL: https://api.timefactory.io/geth
-            ETHEREUM_JSONRPC_TRACE_URL: https://api.timefactory.io/geth
-            ETHEREUM_JSONRPC_WS_URL: https://api.timefactory.io/geth
-            CHAIN_ID: 1
         networks:
             - timefactory
         expose:
@@ -34,79 +28,66 @@ services:
             - blockscout:/app/dets/
 
     visualizer:
+        container_name: visualizer
         image: ghcr.io/blockscout/visualizer
         pull_policy: always
         restart: always
-        container_name: 'visualizer'
         env_file:
             - ../envs/common-visualizer.env
         networks:
             - timefactory
         expose:
-            - '8050'
+            - 8050
 
     sig-provider:
+        container_name: sig-provider
         image: ghcr.io/blockscout/sig-provider
         pull_policy: always
-
         restart: always
-        container_name: 'sig-provider'
         networks:
             - timefactory
         expose:
-            - '8050'
+            - 8050
 
     stats:
         image: ghcr.io/blockscout/stats
+        container_name: stats
         pull_policy: always
         restart: always
-        container_name: 'stats'
         env_file:
             - ../envs/common-stats.env
-        environment:
-            - STATS__DB_URL=${STATS__DB_URL:-postgres://stats:n0uejXPl61ci6ldCuE2gQU5Y@stats-db:5432/stats}
-            - STATS__BLOCKSCOUT_DB_URL=${STATS__BLOCKSCOUT_DB_URL:-postgresql://blockscout:ceWb1MeLBEeOIfk65gU8EjF8@db:5432/blockscout}
-            - STATS__CREATE_DATABASE=${STATS__CREATE_DATABASE:-true}
-            - STATS__RUN_MIGRATIONS=${STATS__RUN_MIGRATIONS:-true}
         depends_on:
             - backend
         networks:
             - timefactory
         expose:
-            - '8050'
+            - 8050
 
     sc-verifier:
         image: ghcr.io/blockscout/smart-contract-verifier
+        container_name: smart-contract-verifier
         pull_policy: always
-
         restart: always
-        container_name: 'smart-contract-verifier'
         env_file:
             - ../envs/common-smart-contract-verifier.env
         networks:
             - timefactory
         expose:
-            - '8050'
+            - 8050
 
     user-ops-indexer:
         image: ghcr.io/blockscout/user-ops-indexer
+        container_name: user-ops-indexer
         pull_policy: always
-
         restart: always
-        container_name: 'user-ops-indexer'
         env_file:
             - ../envs/common-user-ops-indexer.env
-        environment:
-            - USER_OPS_INDEXER__INDEXER__RPC_URL=${USER_OPS_INDEXER__INDEXER__RPC_URL:-ws://host.docker.internal:8545/}
-            - USER_OPS_INDEXER__DATABASE__CONNECT__URL=${USER_OPS_INDEXER__DATABASE__CONNECT__URL:-postgresql://blockscout:ceWb1MeLBEeOIfk65gU8EjF8@db:5432/blockscout}
-            - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=true
         depends_on:
-            - db
             - backend
         networks:
             - timefactory
         expose:
-            - '8050'
+            - 8050
 
 networks:
     timefactory:
