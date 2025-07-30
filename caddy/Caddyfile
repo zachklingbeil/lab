@@ -27,28 +27,26 @@ zachklingbeil.com {
 	redir https://github.com/zachklingbeil
 }
 
-docker.zachklingbeil.com {
-	import constants
-	reverse_proxy /v2/* registry:5000
-}
-
 db.zachklingbeil.com {
 	import constants
 	reverse_proxy pgadmin:80
 }
 
-lab.zachklingbeil.com {
+docker.timefactory.io {
 	import constants
-	import apiauth
-	@websocket {
-		header Connection *Upgrade*
-		header Upgrade websocket
-	}
-	reverse_proxy @websocket geth:8546
-	reverse_proxy geth:8545
+	reverse_proxy /v2/* registry:5000
 }
 
-node.zachklingbeil.com {
+api.timefactory.io {
 	import constants
-	reverse_proxy n8n:5678
+
+	handle /geth/* {
+		uri strip_prefix /geth
+		@websocket {
+			header Connection *Upgrade*
+			header Upgrade websocket
+		}
+		reverse_proxy @websocket geth:8546
+		reverse_proxy geth:8545
+	}
 }

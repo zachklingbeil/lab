@@ -1,7 +1,7 @@
 services:
     caddy:
         container_name: caddy
-        image: docker.zachklingbeil.com/caddy
+        image: docker.timefactory.io/caddy
         volumes:
             - caddy:/data/caddy
             - ./Caddyfile:/etc/caddy/Caddyfile
