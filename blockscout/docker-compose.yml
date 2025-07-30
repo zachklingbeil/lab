@@ -4,8 +4,6 @@ services:
         container_name: frontend
         pull_policy: always
         restart: always
-        env_file:
-            - ../envs/common-frontend.env
         networks:
             - timefactory
         expose:
@@ -17,8 +15,6 @@ services:
         restart: always
         stop_grace_period: 5m
         command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
-        env_file:
-            - ../envs/common-blockscout.env
         networks:
             - timefactory
         expose:
@@ -32,8 +28,6 @@ services:
         image: ghcr.io/blockscout/visualizer
         pull_policy: always
         restart: always
-        env_file:
-            - ../envs/common-visualizer.env
         networks:
             - timefactory
         expose:
@@ -54,8 +48,6 @@ services:
         container_name: stats
         pull_policy: always
         restart: always
-        env_file:
-            - ../envs/common-stats.env
         depends_on:
             - backend
         networks:
@@ -68,8 +60,6 @@ services:
         container_name: smart-contract-verifier
         pull_policy: always
         restart: always
-        env_file:
-            - ../envs/common-smart-contract-verifier.env
         networks:
             - timefactory
         expose:
@@ -80,8 +70,6 @@ services:
         container_name: user-ops-indexer
         pull_policy: always
         restart: always
-        env_file:
-            - ../envs/common-user-ops-indexer.env
         depends_on:
             - backend
         networks:
