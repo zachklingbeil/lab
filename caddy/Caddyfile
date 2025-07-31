@@ -42,11 +42,11 @@ api.timefactory.io {
 
 	handle /geth/* {
 		uri strip_prefix /geth
-		@websocket {
-			header Connection *Upgrade*
-			header Upgrade websocket
-		}
-		reverse_proxy @websocket geth:8546
 		reverse_proxy geth:8545
 	}
+}
+
+block.timefactory.io {
+	import constants
+	reverse_proxy host.docker.internal:8079
 }
