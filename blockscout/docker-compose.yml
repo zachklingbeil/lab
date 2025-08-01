@@ -1,13 +1,4 @@
 services:
-    frontend:
-        image: ghcr.io/blockscout/frontend
-        container_name: frontend
-        pull_policy: always
-        restart: always
-        networks:
-            - timefactory
-        expose:
-            - 8000
     backend:
         image: ghcr.io/blockscout/blockscout
         container_name: backend
@@ -28,16 +19,6 @@ services:
         volumes:
             - blockscout:/app/logs/
             - blockscout:/app/dets/
-
-    visualizer:
-        container_name: visualizer
-        image: ghcr.io/blockscout/visualizer
-        pull_policy: always
-        restart: always
-        networks:
-            - timefactory
-        expose:
-            - 8050
 
     sig-provider:
         container_name: sig-provider
