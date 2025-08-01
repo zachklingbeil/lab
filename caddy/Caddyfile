@@ -48,5 +48,5 @@ api.timefactory.io {
 
 block.timefactory.io {
 	import constants
-	reverse_proxy host.docker.internal:8079
+	reverse_proxy backend:4000
 }
