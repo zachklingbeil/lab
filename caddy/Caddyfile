@@ -37,12 +37,16 @@ docker.timefactory.io {
 	reverse_proxy /v2/* registry:5000
 }
 
-api.timefactory.io {
+node.timefactory.io {
 	import constants
 
-	handle /geth/* {
-		uri strip_prefix /geth
+	handle /rpc* {
+		uri strip_prefix /rpc
 		reverse_proxy geth:8545
+	}
+	handle /ws* {
+		uri strip_prefix /ws
+		reverse_proxy geth:8546
 	}
 }
 

@@ -9,7 +9,7 @@ services:
         environment:
             - DATABASE_URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout?ssl=false
             - REDIS_URL=redis://redis:6379/1
-            - ETHEREUM_JSONRPC_HTTP_URL=http://geth:8545
+            - ETHEREUM_JSONRPC_HTTP_URL=https://node.timefactory.io/rpc
             - CHAIN_ID=1
         networks:
             - timefactory
@@ -18,7 +18,7 @@ services:
         volumes:
             - blockscout:/app/logs/
             - blockscout:/app/dets/
-   
+
 
     user-ops-indexer:
         image: ghcr.io/blockscout/user-ops-indexer
@@ -26,7 +26,7 @@ services:
         pull_policy: always
         restart: always
         environment:
-            - USER_OPS_INDEXER__INDEXER__RPC_URL=ws://geth:8546
+            - USER_OPS_INDEXER__INDEXER__RPC_URL=https://node.timefactory.io/rpc
             - USER_OPS_INDEXER__DATABASE__CONNECT__URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout
             - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=true
         depends_on:

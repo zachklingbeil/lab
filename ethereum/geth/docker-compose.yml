@@ -13,16 +13,18 @@ services:
             - 8546
             - 8551
         volumes:
-            - ethereum:/ethereum
+            - geth:/.ethereum
             - ./jwt.hex:/root/jwt.hex
             # openssl rand -hex 32 > jwt.hex
         command: >
-            --ipcpath=/ethereum/geth.ipc
+            --ipcpath=/.ethereum/geth.ipc
             --authrpc.addr 0.0.0.0
             --authrpc.port 8551
             --authrpc.jwtsecret=/root/jwt.hex
             --authrpc.vhosts "*"
             --syncmode snap
+            --history.state=0
+            --gcmode archive
             --http
             --http.api eth,net,web3,txpool
             --http.corsdomain "*"
@@ -37,38 +39,9 @@ services:
             --cache 16384
         restart: unless-stopped
 
-    lighthouse:
-        image: sigp/lighthouse
-        container_name: lighthouse
-        pull_policy: always
-        networks:
-            - timefactory
-        ports:
-            - 9000:9000
-            - 9000:9000/udp
-            - 9001:9001/udp
-        expose:
-            - 5052
-        volumes:
-            - ethereum:/ethereum
-            - ./jwt.hex:/root/jwt.hex
-        command: >
-            lighthouse
-            --network mainnet
-            beacon
-            --http
-            --http-address 0.0.0.0
-            --http-port 5052
-            --execution-endpoint http://geth:8551
-            --execution-jwt /root/jwt.hex
-            --checkpoint-sync-url https://mainnet.checkpoint.sigp.io
-            --disable-deposit-contract-sync
-        depends_on:
-            - geth
-        restart: unless-stopped
 networks:
     timefactory:
         external: true
 volumes:
-    ethereum:
+    geth:
         external: true

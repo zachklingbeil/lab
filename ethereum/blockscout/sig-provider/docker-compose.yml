@@ -1,0 +1,13 @@
+services:
+    sig-provider:
+        container_name: sig-provider
+        image: ghcr.io/blockscout/sig-provider
+        pull_policy: always
+        restart: always
+        networks:
+            - timefactory
+        expose:
+            - 8050
+networks:
+    timefactory:
+        external: true

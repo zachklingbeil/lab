@@ -1,0 +1,13 @@
+services:
+    sc-verifier:
+        image: ghcr.io/blockscout/smart-contract-verifier
+        container_name: smart-contract-verifier
+        pull_policy: always
+        restart: always
+        networks:
+            - timefactory
+        expose:
+            - 8050
+networks:
+    timefactory:
+        external: true
