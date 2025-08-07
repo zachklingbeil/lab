@@ -14,46 +14,10 @@ services:
         networks:
             - timefactory
         expose:
-          - 4000
+            - 4000
         volumes:
             - blockscout:/app/logs/
             - blockscout:/app/dets/
-
-
-    user-ops-indexer:
-        image: ghcr.io/blockscout/user-ops-indexer
-        container_name: user-ops-indexer
-        pull_policy: always
-        restart: always
-        environment:
-            - USER_OPS_INDEXER__INDEXER__RPC_URL=https://node.timefactory.io/rpc
-            - USER_OPS_INDEXER__DATABASE__CONNECT__URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout
-            - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=true
-        depends_on:
-            - backend
-        networks:
-            - timefactory
-        expose:
-            - 8050
-    sig-provider:
-        container_name: sig-provider
-        image: ghcr.io/blockscout/sig-provider
-        pull_policy: always
-        restart: always
-        networks:
-            - timefactory
-        expose:
-            - 8050
-
-    sc-verifier:
-        image: ghcr.io/blockscout/smart-contract-verifier
-        container_name: smart-contract-verifier
-        pull_policy: always
-        restart: always
-        networks:
-            - timefactory
-        expose:
-            - 8050
 
 networks:
     timefactory:
