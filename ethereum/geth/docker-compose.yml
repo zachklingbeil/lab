@@ -3,6 +3,10 @@ services:
         image: ethereum/client-go
         container_name: geth
         pull_policy: always
+        volumes:
+            - geth:/.ethereum
+            - ./jwt.hex:/root/jwt.hex
+            # openssl rand -hex 32 > jwt.hex
         networks:
             - timefactory
         ports:
@@ -12,10 +16,17 @@ services:
             - 8545
             - 8546
             - 8551
-        volumes:
-            - geth:/.ethereum
-            - ./jwt.hex:/root/jwt.hex
-            # openssl rand -hex 32 > jwt.hex
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.geth-http.rule=Host(`geth.timefactory.io`) && PathPrefix(`/`)
+            - traefik.http.routers.geth-http.entrypoints=https
+            - traefik.http.routers.geth-http.service=geth-http
+            - traefik.http.services.geth-http.loadbalancer.server.port=8545
+
+            - traefik.http.routers.geth-ws.rule=Host(`geth.timefactory.io`) && PathPrefix(`/ws`)
+            - traefik.http.routers.geth-ws.entrypoints=https
+            - traefik.http.routers.geth-ws.service=geth-ws
+            - traefik.http.services.geth-ws.loadbalancer.server.port=8546
         command: >
             --ipcpath=/.ethereum/geth.ipc
             --authrpc.addr 0.0.0.0
@@ -34,7 +45,7 @@ services:
             --ws.origins "*"
             --ws.port 8546
             --ws.addr 0.0.0.0
-            --cache 8192
+            --cache 12288
         #--history.state=0
         #--gcmode archive
         restart: unless-stopped

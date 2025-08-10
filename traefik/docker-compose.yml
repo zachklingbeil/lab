@@ -1,0 +1,44 @@
+services:
+    traefik:
+        image: traefik
+        container_name: traefik
+        restart: always
+        ports:
+            - 80:80/tcp # http
+            - 443:443/tcp # https
+            - 443:443/udp # https http3 quic
+        expose:
+            - 80 # http
+            - 443 # https
+            - 8080 # http api dashboard
+        volumes:
+            - traefik:/traefik
+            - traefik:/traefik/acme.json
+            - ./config.yml:/traefik/config.yml
+            - ./traefik.yml:/traefik/traefik.yml
+            - ./htpasswd:/traefik/htpasswd
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        environment:
+            - TZ=America/Los_Angeles
+            - CF_DNS_API_TOKEN=${CF_API_TOKEN}
+        labels:
+            - traefik.enable=true
+            - traefik.entrypoints=https
+
+            - traefik.http.routers.api.rule=Host(`traefik.timefactory.io`)
+            - traefik.http.routers.api.entrypoints=https
+            - traefik.http.routers.api.service=api@internal
+            - traefik.http.routers.api.middlewares=basic-auth@file
+        extra_hosts:
+            - host.docker.internal:172.17.0.1
+        security_opt:
+            - no-new-privileges:true
+        networks:
+            - timefactory
+networks:
+    timefactory:
+        external: true
+
+volumes:
+    traefik:
+        external: true

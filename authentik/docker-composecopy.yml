@@ -1,0 +1,18 @@
+services:
+    authentik:
+        image: authentik/authentik:latest
+        container_name: authentik
+        restart: unless-stopped
+        environment:
+            - AUTHENTIK_SECRET_KEY=your_secret_key_here
+            - AUTHENTIK_DATABASE_URL=postgres://authentik:password@db:5432/authentik
+            - AUTHENTIK_REDIS_URL=redis://redis:6379/0
+            - AUTHENTIK_HOSTNAME=authentik.example.com
+            - AUTHENTIK_DEBUG=False
+        ports:
+            - '8000:8000'
+        volumes:
+            - ./authentik_data:/data
+        depends_on:
+            - db
+            - redis
