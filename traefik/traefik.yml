@@ -11,24 +11,7 @@ api:
 # Log level INFO|DEBUG|ERROR
 log:
   level: INFO
-
-# Configuring Multiple Filters
-accessLog:
-  filePath: "/logs/traefik.log"
-  format: json
-  filters:
-    statusCodes:
-    - "200-299" # log successful http requests
-    - "400-599" # log failed http requests
-    #retryAttempts: true
-    #minDuration: "10ms"
-    # collect logs as in-memory buffer before writing into log file
-  bufferingSize: 0
-  fields:
-    headers:
-      defaultMode: drop # drop all headers per default
-      names:
-        User-Agent: keep # log user agent strings
+accessLog: {}
 
 # The setting below is to allow insecure backend connections.  
 serverTransport:
@@ -48,26 +31,17 @@ entryPoints:
   # HTTPS endpoint, with domain wildcard
   https:
     address: :443
-    # enable HTTP3 QUIC via UDP/443
     http3:
       advertisedPort: 443
     http:
       tls:
-        # Generate a wildcard domain certificate
         certResolver: myresolver
         domains:
         - main: timefactory.io
           sans:
           - '*.timefactory.io'
-      middlewares:
-      - security-headers@file # reference to a dynamic middleware for setting http security headers per default
-      - rate-limit@file # reference to a dynamic middleware for enabling rate limiting per default
-      #- crowdsec@file # reference to a dynamic middleware for enabling crowdsec bouncer
-
 providers:
   providersThrottleDuration: 2s
-
-  # File provider for connecting things that are outside of docker / defining middleware
   file:
     filename: /traefik/config.yml
     watch: true
@@ -75,7 +49,7 @@ providers:
   # Docker provider for connecting all apps that are inside of the docker network
   docker:
     watch: true
-    network: timefactory # add Your Docker Network Name Here
+    network: timefactory
     endpoint: "unix:///var/run/docker.sock"
     defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)" # change 'example.com' to your proxy domain
     exposedByDefault: false
@@ -86,8 +60,6 @@ certificatesResolvers:
     acme:
       email: zach@zachklingbeil.com # the email address used for ssl certificate registration
       storage: /traefik/acme.json
-      #httpChallenge: # acme http challenge; requires port 80 and proper dns entries
-      #  entryPoint: http # specify the entry point for the HTTP challenge (adjust if needed)
       dnsChallenge:
         # acme dns challenge; requires api token of dns provider
         provider: cloudflare
