@@ -1,35 +1,32 @@
-# Traefik global configuration
 global:
   checkNewVersion: true
   sendAnonymousUsage: false
 
-# Enable traefik ui dashboard
 api:
   dashboard: true
   insecure: false
 
-# Log level INFO|DEBUG|ERROR
 log:
   level: INFO
-accessLog: {}
+  format: json
 
-# The setting below is to allow insecure backend connections.  
+accessLog:
+  format: json
+
 serverTransport:
   insecureSkipVerify: true
 
-# Traefik entrypoints (network ports) configuration
 entryPoints:
-  # Not used in apps, but redirect everything from HTTP to HTTPS
-  http:
+  web:
     address: :80
     http:
       redirections:
         entryPoint:
-          to: https
+          to: websecure
           scheme: https
+          permanent: true
 
-  # HTTPS endpoint, with domain wildcard
-  https:
+  websecure:
     address: :443
     http3:
       advertisedPort: 443
@@ -40,30 +37,82 @@ entryPoints:
         - main: timefactory.io
           sans:
           - '*.timefactory.io'
+
+  dashboard:
+    address: :8080
+
 providers:
   providersThrottleDuration: 2s
-  file:
-    filename: /traefik/config.yml
-    watch: true
-
-  # Docker provider for connecting all apps that are inside of the docker network
   docker:
     watch: true
     network: timefactory
     endpoint: "unix:///var/run/docker.sock"
-    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)" # change 'example.com' to your proxy domain
+    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)"
     exposedByDefault: false
 
-# Use letsencrypt to generate ssl certificates
 certificatesResolvers:
   myresolver:
     acme:
-      email: zach@zachklingbeil.com # the email address used for ssl certificate registration
-      storage: /traefik/acme.json
+      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory
+      email: zach@zachklingbeil.com
+      storage: acme.json
+      keyType: EC256
       dnsChallenge:
-        # acme dns challenge; requires api token of dns provider
         provider: cloudflare
-        # Used to make sure the dns challenge is propagated to the right dns servers
         resolvers:
         - "1.1.1.1:53"
         - "1.0.0.1:53"
+
+http:
+  middlewares:
+    security-headers:
+      headers:
+        customResponseHeaders:
+          Server: ""
+          X-Powered-By: ""
+        contentTypeNosniff: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        forceSTSHeader: true
+        stsSeconds: 63072000
+    auth:
+      basicAuth:
+        users:
+        - "zk:$$2y$$05$$m6SVpV9mmFqw8v3RqhDogurmorPxUFsF3PM6DOivWreVXktOvRlN."
+        # docker run --rm --entrypoint htpasswd httpd:2 -Bbn zk "<password>" | sed -e 's/\$/\$\$/g' > hello_universe
+    error-pages:
+      errors:
+        status:
+        - "401"
+        - "403"
+        - "404"
+        - "500"
+        service: error-service
+        query: "/{status}.html"
+
+  services:
+    error-service:
+      loadBalancer:
+        servers:
+        - url: "http://error-pages:80"
+
+  routers:
+    dashboard:
+      entryPoints:
+      - dashboard
+      - websecure
+      rule: "Host(`traefik.timefactory.io`)" # https://traefik.timefactory.io/dashboard/
+      service: api@internal
+      middlewares:
+      - auth
+      - security-headers
+      - error-pages
+      tls:
+        certResolver: myresolver
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305

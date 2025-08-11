@@ -7,29 +7,20 @@ services:
             - 80:80/tcp # http
             - 443:443/tcp # https
             - 443:443/udp # https http3 quic
-        expose:
-            - 8080 # http api dashboard
         volumes:
-            - traefik:/etc/traefik
-            - ./config.yml:/etc/traefik/config.yml
-            - ./traefik.yml:/etc/traefik/traefik.yml
             - /var/run/docker.sock:/var/run/docker.sock:ro
+            - traefik:/etc/traefik
+            - ./traefik.yml:/etc/traefik/traefik.yml
         environment:
             - TZ=America/Los_Angeles
             - CF_DNS_API_TOKEN=${CF_API_KEY}
         labels:
             - traefik.enable=true
-            - traefik.entrypoints=https
-            - traefik.http.routers.api.rule=Host(`traefik.timefactory.io`)
-            - traefik.http.routers.api.entrypoints=https
-            - traefik.http.routers.api.middlewares=auth,key
-            - traefik.http.routers.middlewares=apikey-auth@file
-            - traefik.http.middlewares.auth.basicauth.users=zk:$$2y$$05$$m6SVpV9mmFqw8v3RqhDogurmorPxUFsF3PM6DOivWreVXktOvRlN.
-            # docker run --rm --entrypoint htpasswd httpd:2 -Bbn zk "<password>" | sed -e 's/\$/\$\$/g' > hello_universe
         security_opt:
             - no-new-privileges:true
         networks:
             - timefactory
+
 networks:
     timefactory:
         external: true

@@ -1,29 +1,31 @@
 services:
-  registry:
-    container_name: registry
-    image: registry
-    expose:
-      - 5000
-      - 5001
-    volumes:
-      - registry:/registry
-      - ./htpasswd/:/auth/htpasswd
-    networks:
-      - timefactory
-    environment:
-      REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
-      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
-      REGISTRY_HTTP_SECRET: ${PASSWORD}
-      OTEL_TRACES_EXPORTER: none
-      REGISTRY_LOG_LEVEL: info
-    restart: always
-    pull_policy: always
+    registry:
+        container_name: registry
+        image: registry
+        expose:
+            - 5000
+            - 5001
+        volumes:
+            - registry:/registry
+            - ./htpasswd/:/auth/htpasswd
+        networks:
+            - timefactory
+        labels:
+            - traefik.enable=true
+        environment:
+            REGISTRY_AUTH: htpasswd
+            REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+            REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+            REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
+            REGISTRY_HTTP_SECRET: ${PASSWORD}
+            OTEL_TRACES_EXPORTER: none
+            REGISTRY_LOG_LEVEL: info
+        restart: always
+        pull_policy: always
 
 networks:
-  timefactory:
-    external: true
+    timefactory:
+        external: true
 volumes:
-  registry:
-    external: true
+    registry:
+        external: true

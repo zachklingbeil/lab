@@ -39,6 +39,8 @@ services:
         environment:
             PGADMIN_DEFAULT_EMAIL: ${EMAIL}
             PGADMIN_DEFAULT_PASSWORD: ${PASSWORD}
+        labels:
+            - traefik.enable=true
         restart: unless-stopped
         pull_policy: always
 networks:
