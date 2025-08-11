@@ -1,21 +1,22 @@
 services:
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - 6379:6379
-    volumes:
-      - redis:/data
-    environment:
-      - REDIS_PASSWORD=${PASSWORD}
-    command: redis-server --requirepass ${PASSWORD} --maxmemory 24GB --maxmemory-policy allkeys-lru
-    networks:
-      - timefactory
-    restart: unless-stopped
-    pull_policy: always
+    redis:
+        image: redis
+        container_name: redis
+        ports:
+            - 6379:6379
+        volumes:
+            - redis:/data
+        environment:
+            - REDIS_PASSWORD=${PASSWORD}
+        command: redis-server --requirepass ${PASSWORD} --maxmemory 12GB --maxmemory-policy allkeys-lru
+        # redis://:${PASSWORD}@redis:6379/<db>
+        networks:
+            - timefactory
+        restart: unless-stopped
+        pull_policy: always
 networks:
-  timefactory:
-    external: true
+    timefactory:
+        external: true
 volumes:
-  redis:
-    external: true
+    redis:
+        external: true
