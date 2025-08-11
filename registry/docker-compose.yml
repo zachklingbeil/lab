@@ -7,17 +7,22 @@ services:
             - 5001
         volumes:
             - registry:/registry
-            - ./htpasswd/:/auth/htpasswd
+            - ../hello_universe:/htpasswd
         networks:
             - timefactory
         labels:
             - traefik.enable=true
+            - traefik.http.routers.registry.rule=Host(`registry.timefactory.io`)
+            - traefik.http.routers.registry.entrypoints=websecure
+            - traefik.http.routers.registry.tls=true
+            - traefik.http.routers.registry.tls.certresolver=myresolver
+            - traefik.http.services.registry.loadbalancer.server.port=5000
         environment:
             REGISTRY_AUTH: htpasswd
             REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-            REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+            REGISTRY_AUTH_HTPASSWD_PATH: /htpasswd
             REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
-            REGISTRY_HTTP_SECRET: ${PASSWORD}
+            REGISTRY_STORAGE_DELETE_ENABLED: true
             OTEL_TRACES_EXPORTER: none
             REGISTRY_LOG_LEVEL: info
         restart: always

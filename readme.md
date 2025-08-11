@@ -11,12 +11,10 @@
 ```docker network create --driver bridge timefactory
 docker volume create caddy
 docker volume create ethereum
-docker volume create ollama
 docker volume create postgres
 docker volume create pgadmin
 docker volume create registry
 docker volume create redis
-docker volume create insight
 ```
 
 ```
@@ -29,4 +27,12 @@ sudo tar -xzvf ~/volumes/registry.tar.gz -C /var/lib/docker/volumes
 
 verify
 docker volume ls
+```
+
+# registry
+
+```
+docker run --rm --entrypoint htpasswd httpd:2 -nbB -C 12 <username> "<password>" | sed -e 's/\$/\$\$/g' > hello_universe
+docker login https://registry.timefactory.io --username <username> --password <password>
+docker build -t registry.timefactory.io/<image>:<tag> . --push
 ```
