@@ -8,10 +8,9 @@ api:
 
 log:
   level: INFO
-  format: json
+  # format: json
 
-accessLog:
-  format: json
+accessLog: {}
 
 serverTransport:
   insecureSkipVerify: true
@@ -30,16 +29,6 @@ entryPoints:
     address: :443
     http3:
       advertisedPort: 443
-    http:
-      tls:
-        certResolver: myresolver
-        domains:
-        - main: timefactory.io
-          sans:
-          - '*.timefactory.io'
-
-  dashboard:
-    address: :8080
 
 providers:
   providersThrottleDuration: 2s
@@ -53,7 +42,7 @@ providers:
 certificatesResolvers:
   myresolver:
     acme:
-      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory
+      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       email: zach@zachklingbeil.com
       storage: acme.json
       keyType: EC256
@@ -62,52 +51,6 @@ certificatesResolvers:
         resolvers:
         - "1.1.1.1:53"
         - "1.0.0.1:53"
-
-http:
-  middlewares:
-    security-headers:
-      headers:
-        customResponseHeaders:
-          Server: ""
-          X-Powered-By: ""
-        contentTypeNosniff: true
-        customFrameOptionsValue: "SAMEORIGIN"
-        forceSTSHeader: true
-        stsSeconds: 63072000
-    auth:
-      basicAuth:
-        users:
-        - "zk:$$2y$$05$$m6SVpV9mmFqw8v3RqhDogurmorPxUFsF3PM6DOivWreVXktOvRlN."
-        # docker run --rm --entrypoint htpasswd httpd:2 -Bbn zk "<password>" | sed -e 's/\$/\$\$/g' > hello_universe
-    error-pages:
-      errors:
-        status:
-        - "401"
-        - "403"
-        - "404"
-        - "500"
-        service: error-service
-        query: "/{status}.html"
-
-  services:
-    error-service:
-      loadBalancer:
-        servers:
-        - url: "http://error-pages:80"
-
-  routers:
-    dashboard:
-      entryPoints:
-      - dashboard
-      - websecure
-      rule: "Host(`traefik.timefactory.io`)" # https://traefik.timefactory.io/dashboard/
-      service: api@internal
-      middlewares:
-      - auth
-      - security-headers
-      - error-pages
-      tls:
-        certResolver: myresolver
 
 tls:
   options:
