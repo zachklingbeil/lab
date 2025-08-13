@@ -16,7 +16,7 @@ services:
             AUTHENTIK_ERROR_REPORTING__ENABLED: true
         volumes:
             - authentik:/authentik
-            - ./src:/web/dist/assets/custom
+            - ./media:/media
         networks:
             - timefactory
         labels:
