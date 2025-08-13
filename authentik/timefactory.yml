@@ -1,0 +1,290 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+  name: Email + Passkey Authentication Flow
+entries:
+
+# Single Authentication Flow
+- identifiers:
+    slug: email-passkey-auth-flow
+  id: main-flow
+  model: authentik_flows.flow
+  attrs:
+    name: Email + Passkey Authentication
+    title: Sign in with your email
+    designation: authentication
+    authentication: require_unauthenticated
+
+# Passkey Setup Flow
+- identifiers:
+    slug: passkey-setup-flow
+  id: setup-flow
+  model: authentik_flows.flow
+  attrs:
+    name: Passkey Setup
+    title: Create your passkey
+    designation: stage_configuration
+
+# Email Prompt
+- identifiers:
+    name: email-prompt
+  id: email-prompt
+  model: authentik_stages_prompt.prompt
+  attrs:
+    field_key: email
+    label: Email Address
+    type: email
+    required: true
+    placeholder: Enter your email address
+    order: 0
+
+# Email Input Stage
+- identifiers:
+    name: email-stage
+  id: email-stage
+  model: authentik_stages_prompt.promptstage
+  attrs:
+    fields:
+    - !KeyOf email-prompt
+
+# User Identification Stage (checks if email exists)
+- identifiers:
+    name: user-identification
+  id: user-identification
+  model: authentik_stages_identification.identificationstage
+  attrs:
+    user_fields: [ email ]
+    sources: []
+    show_matched_user: false
+    show_source_labels: false
+
+# WebAuthn Authentication Stage (for existing users)
+- identifiers:
+    name: passkey-auth-stage
+  id: passkey-auth
+  model: authentik_stages_authenticator_webauthn.authenticatorwebauthnstage
+  attrs:
+    configure_flow: !KeyOf setup-flow
+    user_verification: preferred
+    authenticator_attachment: platform
+
+# Email Verification for New Users AND Recovery
+- identifiers:
+    name: email-verification
+  id: email-verification
+  model: authentik_stages_email.emailstage
+  attrs:
+    use_global_settings: true
+    activate_user_on_success: true
+
+# User Creation for New Users (Service Account type)
+- identifiers:
+    name: user-creation
+  id: user-creation
+  model: authentik_stages_user_write.userwritestage
+  attrs:
+    create_users_as_inactive: false
+    user_creation_mode: always_create
+    create_users_group: !Find [ authentik_core.group, [ name, "authentik Service Accounts" ] ]
+
+# User Update for Existing Users (Recovery)
+- identifiers:
+    name: user-update
+  id: user-update
+  model: authentik_stages_user_write.userwritestage
+  attrs:
+    create_users_as_inactive: false
+    user_creation_mode: never_create
+
+# Passkey Setup for New Users
+- identifiers:
+    name: passkey-setup-config
+  id: passkey-setup-config
+  model: authentik_stages_authenticator_webauthn.authenticatorwebauthnstage
+  attrs:
+    user_verification: preferred
+    authenticator_attachment: platform
+
+# Login Stage
+- identifiers:
+    name: login-stage
+  id: login-stage
+  model: authentik_stages_user_login.userloginstage
+
+# Policy: User exists (email found in system)
+- identifiers:
+    name: user-exists-policy
+  id: user-exists
+  model: authentik_policies_expression.expressionpolicy
+  attrs:
+    name: User Exists
+    expression: |
+      return bool(request.context.get('pending_user'))
+
+# Policy: New user (email not found in system)
+- identifiers:
+    name: new-user-policy
+  id: new-user
+  model: authentik_policies_expression.expressionpolicy
+  attrs:
+    name: New User
+    expression: |
+      return not bool(request.context.get('pending_user'))
+
+# Policy: Check if passkey exists on initial visit
+- identifiers:
+    name: passkey-available-policy
+  id: passkey-available
+  model: authentik_policies_expression.expressionpolicy
+  attrs:
+    name: Passkey Available
+    expression: |
+      # Check if user has WebAuthn session or browser supports conditional UI
+      has_webauthn_session = bool(request.session.get('authentik_webauthn_user_handle'))
+
+      # Check if domain has any passkeys and browser supports WebAuthn
+      from authentik.stages.authenticator_webauthn.models import WebAuthnDevice
+      user_agent = request.META.get('HTTP_USER_AGENT', '')
+      webauthn_capable = any(browser in user_agent for browser in ['Chrome', 'Firefox', 'Safari', 'Edge'])
+      domain_has_passkeys = WebAuthnDevice.objects.filter(confirmed=True).exists()
+
+      # Try passkey first if conditions are met
+      return has_webauthn_session or (webauthn_capable and domain_has_passkeys)
+
+# Policy: Passkey authentication failed (for recovery flow)
+- identifiers:
+    name: passkey-failed-policy
+  id: passkey-failed
+  model: authentik_policies_expression.expressionpolicy
+  attrs:
+    name: Passkey Authentication Failed
+    expression: |
+      # Check if passkey auth was attempted but failed
+      # This indicates existing user needs recovery
+      pending_user = request.context.get('pending_user')
+      passkey_failed = request.context.get('passkey_auth_failed', False)
+      return bool(pending_user) and passkey_failed
+
+# Main Flow Bindings
+# Try passkey authentication first (if available)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf passkey-auth
+    order: 5
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    invalid_response_action: continue
+    policies:
+    - !KeyOf passkey-available
+
+# Email input (always shown if passkey not available)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf email-stage
+    order: 10
+  model: authentik_flows.flowstagebinding
+
+# User identification (check if email exists)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf user-identification
+    order: 20
+  model: authentik_flows.flowstagebinding
+
+# Existing user → Passkey authentication
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf passkey-auth
+    order: 30
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    invalid_response_action: continue # Continue to recovery if passkey fails
+    policies:
+    - !KeyOf user-exists
+
+# Existing user with failed passkey → Email verification (Recovery)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf email-verification
+    order: 35
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf user-exists
+    - !KeyOf passkey-failed
+
+# Existing user recovery → Update user account
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf user-update
+    order: 37
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf user-exists
+    - !KeyOf passkey-failed
+
+# Existing user recovery → Setup new passkey
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf passkey-setup-config
+    order: 38
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf user-exists
+    - !KeyOf passkey-failed
+
+# New user → Email verification
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf email-verification
+    order: 40
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf new-user
+
+# New user → Account creation (service account type)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf user-creation
+    order: 50
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf new-user
+
+# New user → Passkey setup
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf passkey-setup-config
+    order: 60
+  model: authentik_flows.flowstagebinding
+  attrs:
+    policy_engine_mode: all
+    policies:
+    - !KeyOf new-user
+
+# Final login (for all successful paths)
+- identifiers:
+    target: !KeyOf main-flow
+    stage: !KeyOf login-stage
+    order: 100
+  model: authentik_flows.flowstagebinding
+
+# Setup Flow Binding
+- identifiers:
+    target: !KeyOf setup-flow
+    stage: !KeyOf passkey-setup-config
+    order: 10
+  model: authentik_flows.flowstagebinding
