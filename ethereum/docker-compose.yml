@@ -22,21 +22,19 @@ services:
             --authrpc.port 8551
             --authrpc.jwtsecret=/root/jwt.hex
             --authrpc.vhosts "*"
-            --syncmode full
+            --syncmode snap
             --http
-            --http.api eth,net,web3,txpool
+            --http.api eth,net,web3,txpool,debug,admin
             --http.corsdomain "*"
             --http.vhosts "*"
             --http.port 8545
             --http.addr 0.0.0.0
             --ws
-            --ws.api eth,net,web3,txpool
+            --ws.api eth,net,web3,txpool,debug,admin
             --ws.origins "*"
             --ws.port 8546
             --ws.addr 0.0.0.0
             --cache 12288
-        #--history.state=0
-        #--gcmode archive
         restart: unless-stopped
 
     lighthouse:
