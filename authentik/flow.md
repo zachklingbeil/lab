@@ -1,32 +1,36 @@
-# Authentik Email + Passkey Authentication Flow Implementation Guide (ULTRA-SIMPLIFIED)
+# ~Frictionless Authentik Flow
 
-This guide walks you through implementing the Email + Passkey authentication flow with maximum simplification while maintaining all functionality.
+This guide implements Email + Passkey authentication using three distinct, specialized flows for maximum clarity and maintainability.
 
-## Flow Visualization
+## Flow Architecture
 
 ```mermaid
-flowchart TD
-    A[User arrives] --> B[Try WebAuthn]
-    B -->|Success| C[Login - Done!]
-    B -->|Fail/Skip| D[Enter Email]
-    D --> E[Try WebAuthn again]
-    E -->|Success| F[Login - Done!]
-    E -->|Fail| G[Email Verification]
-    G --> H[Create/Update User]
-    H --> I[Setup WebAuthn]
-    I --> J[Final Login]
+    A[User arrives] --> B[Authentication Flow]
+    B -->|Success| C[Login Complete]
+    B -->|No account| D[Enrollment Flow]
+    B -->|Lost passkey| E[Recovery Flow]
+    D --> F[Account Created + Passkey Setup]
+    E --> G[Access Restored + New Passkey]
+    F --> C
+    G --> C
 ```
 
 ## Overview
 
-This flow provides a modern authentication experience where users can:
+This approach uses three specialized flows:
 
--   Sign in with passkeys (if available) - **IMMEDIATE LOGIN ON SUCCESS**
--   Fall back to email verification for new users or recovery
--   Automatically create accounts in the "peers" group
--   Recover access via email if passkey fails
+-   **Authentication Flow**: Passkey-first login for existing users
+-   **Enrollment Flow**: New user registration with email verification
+-   **Recovery Flow**: Account recovery when passkey is lost
 
-## Implementation Steps
+## Prerequisites
+
+Before starting, ensure:
+
+1. **Authentik is running** and accessible via HTTPS
+2. **Email is configured** in **System** → **Settings** → **Email**
+3. **Domain is set** in **System** → **Settings** → **General**
+4. You have **admin access** to Authentik web interface
 
 ### 1. Create Groups
 
@@ -41,70 +45,113 @@ This flow provides a modern authentication experience where users can:
 
 ### 2. Create Flows
 
-#### Main Authentication Flow
+#### Authentication Flow (Primary)
 
 1. Navigate to **Flows & Stages** → **Flows**
 2. Click **Create**
 3. Configure:
-    - **Name**: `hello-universe`
-    - **Title**: `Sign in with your email`
-    - **Slug**: `hello-universe`
+    - **Name**: `auth-flow`
+    - **Title**: `Sign in`
+    - **Slug**: `auth-flow`
     - **Designation**: `Authentication`
-    - **Authentication**: `Require unauthenticated`
+    - **Authentication**: `Require no authentication`
+    - **Denied action**: `MESSAGE_CONTINUE`
+
+#### Enrollment Flow
+
+1. Click **Create**
+2. Configure:
+    - **Name**: `enrollment-flow`
+    - **Title**: `Create Account`
+    - **Slug**: `enrollment-flow`
+    - **Designation**: `Enrollment`
+    - **Authentication**: `Require no authentication`
+    - **Denied action**: `MESSAGE`
+
+#### Recovery Flow
+
+1. Click **Create**
+2. Configure:
+    - **Name**: `recovery-flow`
+    - **Title**: `Recover Access`
+    - **Slug**: `recovery-flow`
+    - **Designation**: `Recovery`
+    - **Authentication**: `Require no authentication`
+    - **Denied action**: `MESSAGE`
 
 ### 3. Create Stages
 
-#### Identification Stage (Email Input + User Lookup Combined)
+#### WebAuthn Authentication Stage
 
 1. Navigate to **Flows & Stages** → **Stages**
-2. Click **Create** → **Identification Stage**
+2. Click **Create** → **Authenticator Validation Stage**
 3. Configure:
-    - **Name**: `identification`
+    - **Name**: `webauthn-auth`
+    - **Device classes**: Select `WebAuthn Authenticators`
+    - **Not configured action**: `Continue`
+    - **Last validation threshold**: `0 seconds`
+
+#### WebAuthn Setup Stage
+
+1. Click **Create** → **WebAuthn Authenticator Setup Stage**
+2. Configure:
+    - **Name**: `webauthn-setup`
+    - **Authenticator type name**: `Passkey`
+    - **Configure flow**: Leave empty
+    - **User verification**: `Preferred`
+    - **Resident key requirement**: `Preferred`
+
+#### Email Identification Stage
+
+1. Click **Create** → **Identification Stage**
+2. Configure:
+    - **Name**: `email-identification`
     - **User fields**: Select `Email`
     - **Sources**: Leave empty
     - **Show matched user**: Unchecked
     - **Show source labels**: Unchecked
-
-#### WebAuthn Stage (Authentication & Setup Combined)
-
-1. Click **Create** → **WebAuthn Authenticator Stage**
-2. Configure:
-    - **Name**: `auth`
-    - **Configure flow**: Leave empty
-    - **User verification**: `Preferred`
-    - **Authenticator attachment**: `Platform`
+    - **Enrollment flow**: Select `enrollment-flow`
+    - **Recovery flow**: Select `recovery-flow`
 
 #### Email Verification Stage
 
 1. Click **Create** → **Email Stage**
 2. Configure:
-    - **Name**: `verification`
+    - **Name**: `email-verification`
     - **Use global settings**: ✓
     - **Activate user on success**: ✓
 
-#### User Write Stage (Creation & Update Combined)
+#### User Creation Stage
 
 1. Click **Create** → **User Write Stage**
 2. Configure:
-    - **Name**: `peer`
+    - **Name**: `user-creation`
     - **Create users as inactive**: Unchecked
-    - **User creation mode**: `Create when option is set`
+    - **User creation mode**: `Always create`
     - **Create users group**: Select `peers`
+
+#### User Recovery Stage
+
+1. Click **Create** → **User Write Stage**
+2. Configure:
+    - **Name**: `user-recovery`
+    - **Create users as inactive**: Unchecked
+    - **User creation mode**: `Never create`
 
 #### Login Stage
 
 1. Click **Create** → **User Login Stage**
 2. Configure:
-    - **Name**: `one`
+    - **Name**: `login`
 
-### 4. Create Policies (Minimal Set)
+### 4. Create Policies
 
 #### User Exists Policy
 
 1. Navigate to **Policies** → **Policies**
 2. Click **Create** → **Expression Policy**
 3. Configure:
-    - **Name**: `known`
+    - **Name**: `user-exists`
     - **Expression**:
     ```python
     return bool(request.context.get('pending_user'))
@@ -114,132 +161,257 @@ This flow provides a modern authentication experience where users can:
 
 1. Click **Create** → **Expression Policy**
 2. Configure:
-    - **Name**: `success`
+    - **Name**: `auth-success`
     - **Expression**:
     ```python
-    # Check if user is authenticated (simplified)
     return bool(request.user and request.user.is_authenticated)
     ```
 
-### 5. Configure Flow Stage Bindings (ULTRA-SIMPLIFIED)
+### 5. Configure Flow Stage Bindings
 
-#### Main Authentication Flow
+#### Authentication Flow (Primary)
 
-Navigate to **Flows & Stages** → **Flows** → Select `hello-universe` → **Stage Bindings** tab
+Navigate to **Flows & Stages** → **Flows** → Select `auth-flow` → **Stage Bindings** tab
 
-**Add the following bindings in the EXACT order below:**
+1. **Order 10**: WebAuthn Authentication
 
-1. **Order 10**: WebAuthn (Try First)
+    - **Stage**: `webauthn-auth`
+    - **Evaluate when stage is run**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `any`
 
-    - **Stage**: `auth`
-    - **Policy engine mode**: `All`
-    - **Invalid response action**: `Continue`
-    - **No policies** (let WebAuthn handle availability)
+2. **Order 20**: Login (After WebAuthn Success)
 
-2. **Order 15**: Login (After Initial Success)
+    - **Stage**: `login`
+    - **Evaluate when stage is run**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `all`
+    - **Add Policy Binding**:
+        - **Policy**: `auth-success`
+        - **Enabled**: ✓
+        - **Negate result**: Unchecked
+        - **Order**: `0`
+        - **Timeout**: `30`
+        - **Failure result**: `Don't pass`
 
-    - **Stage**: `one`
-    - **Policy engine mode**: `All`
-    - **Policies**: `success`
+#### Enrollment Flow
 
-3. **Order 20**: Email Input + User Identification (Combined)
+Navigate to **Flows & Stages** → **Flows** → Select `enrollment-flow` → **Stage Bindings** tab
 
-    - **Stage**: `identification`
-    - **No policies** (always shown if WebAuthn didn't work)
+1. **Order 10**: Email Verification
 
-4. **Order 30**: WebAuthn (Identified Users)
+    - **Stage**: `email-verification`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `any`
 
-    - **Stage**: `auth`
-    - **Policy engine mode**: `All`
-    - **Invalid response action**: `Continue`
-    - **Policies**: `known`
+2. **Order 20**: User Creation
 
-5. **Order 35**: Login (After User Success)
+    - **Stage**: `user-creation`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RESTART`
+    - **Policy engine mode**: `any`
 
-    - **Stage**: `one`
-    - **Policy engine mode**: `All`
-    - **Policies**: `known`, `success`
+3. **Order 30**: WebAuthn Setup
 
-6. **Order 40**: Email Verification (All Cases)
+    - **Stage**: `webauthn-setup`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `any`
 
-    - **Stage**: `verification`
+4. **Order 40**: Login
+    - **Stage**: `login`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RESTART`
+    - **Policy engine mode**: `any`
 
-7. **Order 50**: User Creation/Update
+#### Recovery Flow
 
-    - **Stage**: `peer`
+Navigate to **Flows & Stages** → **Flows** → Select `recovery-flow` → **Stage Bindings** tab
 
-8. **Order 60**: WebAuthn Setup
+1. **Order 10**: Email Verification
 
-    - **Stage**: `auth`
+    - **Stage**: `email-verification`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `any`
 
-9. **Order 90**: Final Login
-    - **Stage**: `one`
+2. **Order 20**: User Recovery
+
+    - **Stage**: `user-recovery`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RESTART`
+    - **Policy engine mode**: `any`
+
+3. **Order 30**: WebAuthn Setup
+
+    - **Stage**: `webauthn-setup`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RETRY`
+    - **Policy engine mode**: `any`
+
+4. **Order 40**: Login
+    - **Stage**: `login`
+    - **Evaluate when flow is planned**: ✓
+    - **Invalid response behavior**: `RESTART`
+    - **Policy engine mode**: `any`
 
 ### 6. Configure Application
 
 1. Navigate to **Applications** → **Applications**
 2. Select your application or create a new one
-3. Set **Authentication flow** to `hello-universe`
+3. Set **Authentication flow** to `auth-flow`
 
-## Key Simplifications Made
+## Validate Configuration
 
-### **Reduced Components:**
+After setup, verify your configuration:
 
--   **1 WebAuthn stage** (handles both auth & setup)
--   **1 User Write stage** (handles both creation & update)
--   **1 Identification stage** (handles email input + user lookup)
--   **2 policies total** (only what's needed)
--   **9 stage bindings** (streamlined flow)
--   **No separate email prompt or email input stages**
--   **No separate setup flow**
+### Check Groups
 
-### **Simplified Flow Logic:**
+1. Navigate to **Directory** → **Groups**
+2. Confirm `peers` group exists
 
-1. **Try WebAuthn first** → Login if successful
-2. **Email input/identification** (single stage) → Try WebAuthn again → Login if successful
-3. **Email verification** → Create/update user → Setup WebAuthn → Login
+### Check Flows
 
-### **User Experience:**
+1. Navigate to **Flows & Stages** → **Flows**
+2. Verify all 3 flows are created:
+    - `auth-flow` (Designation: Authentication)
+    - `enrollment-flow` (Designation: Enrollment)
+    - `recovery-flow` (Designation: Recovery)
 
-#### **Scenario 1: Returning User with Passkey**
+### Check Stages
 
-1. WebAuthn prompt appears immediately
-2. **IMMEDIATE LOGIN** - no email prompt
+1. Navigate to **Flows & Stages** → **Stages**
+2. Verify all 7 stages are created:
+    - `webauthn-auth` (Authenticator Validation Stage)
+    - `webauthn-setup` (WebAuthn Authenticator Setup Stage)
+    - `email-identification` (Identification Stage)
+    - `email-verification` (Email Stage)
+    - `user-creation` (User Write Stage)
+    - `user-recovery` (User Write Stage)
+    - `login` (User Login Stage)
 
-#### **Scenario 2: User Needs Email Entry**
+### Check Policies
 
-1. Email input/identification (single step) → WebAuthn prompt
-2. **IMMEDIATE LOGIN** if successful
+1. Navigate to **Policies** → **Policies**
+2. Verify 2 policies exist:
+    - `user-exists`
+    - `auth-success`
 
-#### **Scenario 3: New User or Recovery**
+### Check Flow Bindings
 
-1. Email input/identification → Email verification → Account setup → WebAuthn setup → Login
+1. Navigate to **Flows & Stages** → **Flows** → `auth-flow`
+2. Click **Stage Bindings** tab
+3. Verify 5 bindings in correct order (10, 20, 30, 40, 50)
 
-## Benefits of Ultra-Simplification
+## Key Stage Updates Made
 
--   **Minimal components** to manage and maintain
--   **Cleaner configuration** with less room for error
--   **Same functionality** as complex version
--   **Easier troubleshooting** with streamlined flow
--   **Automatic group assignment** to peers for all users
--   **Immediate login** on successful authentication
--   **Only 2 policies** - minimal complexity
--   **Single email input stage** handles both collection and identification
+### **WebAuthn Authentication Stage**
+
+-   **Changed to**: `Authenticator Validation Stage`
+-   **Device classes**: `WebAuthn Authenticators`
+-   **Not configured action**: `Continue` (allows flow to proceed if no WebAuthn configured)
+
+### **WebAuthn Setup Stage**
+
+-   **Correct type**: `WebAuthn Authenticator Setup Stage`
+-   **Purpose**: Enrolls new WebAuthn authenticators
+
+### **Stage Binding Settings**
+
+-   **Removed**: `Invalid response action` (not applicable to Authenticator Validation Stage)
+-   **Updated**: Policy evaluation settings to use `Re-evaluate policies` checkbox
+
+## User Experience
+
+### **Scenario 1: Returning User**
+
+1. **Authentication Flow** → WebAuthn prompt → **Immediate login**
+
+### **Scenario 2: New User**
+
+1. **Authentication Flow** → WebAuthn fails/skipped → Email identification
+2. Email not found → **Redirected to Enrollment Flow**
+3. Email verification → Account creation → Passkey setup → Login
+
+### **Scenario 3: Lost Passkey**
+
+1. **Authentication Flow** → WebAuthn fails/skipped → Email identification
+2. Click "Recover Access" → **Redirected to Recovery Flow**
+3. Email verification → New passkey setup → Login
+
+## Security Considerations
+
+### WebAuthn Settings
+
+-   **User verification: Preferred** - Requires biometric/PIN when available
+-   **Authenticator attachment: Platform** - Uses device-built authenticators (Touch ID, Windows Hello, etc.)
+
+### Email Security
+
+-   Use **HTTPS only** for email verification links
+-   Email verification links expire automatically
+-   Users must verify email before account activation
+
+### Group Permissions
+
+-   All users automatically join `peers` group
+-   Review and configure `peers` group permissions as needed
+-   Consider additional authorization policies per application
 
 ## Component Summary
 
 ### **Total Components:**
 
 -   **1 Group** (`peers`)
--   **1 Flow** (`hello-universe`)
--   **5 Stages** (`identification`, `auth`, `verification`, `peer`, `one`)
--   **2 Policies** (`known`, `success`)
--   **9 Stage Bindings**
+-   **3 Flows** (`auth-flow`, `enrollment-flow`, `recovery-flow`)
+-   **7 Stages** (2 WebAuthn + 5 supporting stages)
+-   **2 Policies** (`user-exists`, `auth-success`)
+-   **12 Stage Bindings** (5 + 4 + 3)
 
-## Testing the Simplified Flow
+## Testing Each Flow (Detailed)
 
-1. **Test with existing user**: Should see WebAuthn prompt → immediate login
-2. **Test with new user**: Should see email input → verification → setup → login
-3. **Test recovery**: Email input → verification → setup → login
+### **Test Authentication Flow**
 
-This ultra-simplified version maintains all the original functionality while being much easier to implement and maintain with the absolute minimum components required!
+1. Open incognito/private browser window
+2. Navigate to your application
+3. **For existing user with passkey:**
+    - WebAuthn prompt appears immediately
+    - Use fingerprint/Face ID/security key
+    - **Immediate login** (no email prompt)
+4. **For existing user without passkey:**
+    - WebAuthn prompt (click Cancel/Skip)
+    - Email input field appears
+    - Enter existing email address
+    - WebAuthn prompt appears again
+    - Use fingerprint/Face ID or cancel to proceed
+    - Login successful
+
+### **Test Enrollment Flow**
+
+1. Use different browser/device
+2. Navigate to application
+3. **Expected flow:**
+    - WebAuthn prompt (click Cancel/Skip)
+    - Email input with new email address
+    - "Create Account" button appears
+    - Click "Create Account" → Redirected to Enrollment Flow
+    - Check email for verification link
+    - Click verification link
+    - Account created automatically
+    - WebAuthn setup prompt
+    - Setup complete → Login successful
+
+### **Test Recovery Flow**
+
+1. Use different browser/device
+2. Navigate to application
+3. **Expected flow:**
+    - WebAuthn prompt (click Cancel/Skip)
+    - Email input with existing email
+    - "Recover Access" button appears
+    - Click "Recover Access" → Redirected to Recovery Flow
+    - Check email for verification link
+    - Click verification link
+    - WebAuthn setup for new device
+    - Setup complete → Login successful

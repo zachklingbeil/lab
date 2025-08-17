@@ -9,31 +9,24 @@ services:
             - 443:443/udp # https http3 quic
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
-            - traefik:/etc/traefik
             - ./traefik.yml:/etc/traefik/traefik.yml
+            - ./dynamic:/etc/traefik/dynamic:ro
+            - ./acme.json:/acme.json
         environment:
             - TZ=America/Los_Angeles
             - CF_DNS_API_TOKEN=${CF_API_KEY}
-        labels:
-            - traefik.enable=true
-            - traefik.http.routers.dashboard.rule=Host(`traefik.timefactory.io`)
-            - traefik.http.routers.dashboard.entrypoints=websecure
-            - traefik.http.routers.dashboard.service=api@internal
-            - traefik.http.routers.dashboard.tls=true
-            - traefik.http.routers.dashboard.tls.certresolver=myresolver
-            - traefik.http.routers.dashboard.middlewares=auth,security-headers
-            - traefik.http.middlewares.auth.basicauth.users=zk:$$2y$$05$$m6SVpV9mmFqw8v3RqhDogurmorPxUFsF3PM6DOivWreVXktOvRlN.
-            - traefik.http.middlewares.security-headers.headers.customresponseheaders.Server=
-            - traefik.http.middlewares.security-headers.headers.customresponseheaders.X-Powered-By=
         security_opt:
             - no-new-privileges:true
         networks:
             - timefactory
-
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.dashboard.rule=Host(`proxy.timefactory.io`)
+            - traefik.http.routers.dashboard.entrypoints=websecure
+            - traefik.http.routers.dashboard.service=api@internal
+            - traefik.http.routers.dashboard.tls=true
+            - traefik.http.routers.dashboard.tls.certresolver=cloudflare
+            - traefik.http.routers.dashboard.middlewares=authentik@file
 networks:
     timefactory:
-        external: true
-
-volumes:
-    traefik:
         external: true

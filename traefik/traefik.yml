@@ -38,9 +38,12 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)"
     exposedByDefault: false
+  file:
+    directory: /etc/traefik/dynamic/
+    watch: true
 
 certificatesResolvers:
-  myresolver:
+  cloudflare:
     acme:
       # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       email: zach@zachklingbeil.com

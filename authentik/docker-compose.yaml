@@ -1,9 +1,12 @@
 services:
     server:
         image: ghcr.io/goauthentik/server:2025.6.4
-        restart: unless-stopped
         container_name: authentik
+        restart: unless-stopped
         command: server
+        volumes:
+            - authentik:/authentik
+            - ./media:/media
         environment:
             AUTHENTIK_SECRET_KEY: ${AUTHENTIK_KEY:?secret key required}
             AUTHENTIK_POSTGRESQL__HOST: postgres
@@ -13,10 +16,15 @@ services:
             AUTHENTIK_REDIS__HOST: redis
             AUTHENTIK_REDIS__PASSWORD: ${PASSWORD}
             AUTHENTIK_REDIS__DB: 2
-            AUTHENTIK_ERROR_REPORTING__ENABLED: true
-        volumes:
-            - authentik:/authentik
-            - ./media:/media
+            AUTHENTIK_ERROR_REPORTING__ENABLED: false
+            AUTHENTIK_EMAIL__HOST: smtp.resend.com
+            AUTHENTIK_EMAIL__PORT: 587
+            AUTHENTIK_EMAIL__USERNAME: resend
+            AUTHENTIK_EMAIL__PASSWORD: ${RESEND_API_KEY:?Resend API key required}
+            AUTHENTIK_EMAIL__USE_TLS: true
+            AUTHENTIK_EMAIL__USE_SSL: false
+            AUTHENTIK_EMAIL__TIMEOUT: 10
+            AUTHENTIK_EMAIL__FROM: info@timefactory.io
         networks:
             - timefactory
         labels:
@@ -24,8 +32,10 @@ services:
             - traefik.http.routers.authentik.rule=Host(`auth.timefactory.io`)
             - traefik.http.routers.authentik.entrypoints=websecure
             - traefik.http.routers.authentik.tls=true
-            - traefik.http.routers.authentik.tls.certresolver=myresolver
+            - traefik.http.routers.authentik.tls.certresolver=cloudflare
+            - traefik.http.routers.authentik.service=authentik
             - traefik.http.services.authentik.loadbalancer.server.port=9000
+
     worker:
         image: ghcr.io/goauthentik/server:2025.6.4
         restart: unless-stopped
@@ -40,6 +50,8 @@ services:
             AUTHENTIK_POSTGRESQL__NAME: authentik
             AUTHENTIK_POSTGRESQL__PASSWORD: ${PASSWORD}
         user: root
+        security_opt:
+            - no-new-privileges:true
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         networks:
