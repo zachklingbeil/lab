@@ -1,0 +1,34 @@
+services:
+    siren:
+        image: sigp/siren
+        container_name: siren
+        pull_policy: always
+        networks:
+            - timefactory
+        environment:
+            BEACON_URL: http://lighthouse:5052
+            VALIDATOR_URL: http://lighthouse:5062
+            API_TOKEN: ${SIREN_API_TOKEN}
+            SESSION_PASSWORD: ${SESSION_PASSWORD}
+            SSL_ENABLED: false
+            DEBUG: false
+            PORT: 3000
+            BACKEND_URL: http://127.0.0.1:3001
+            BACKEND_PORT: 3001
+        volumes:
+            - siren:/app/backend/.db
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.siren.rule=Host(`siren.timefactory.io`)
+            - traefik.http.routers.siren.entrypoints=websecure
+            - traefik.http.routers.siren.tls=true
+            - traefik.http.routers.siren.tls.certresolver=cloudflare
+            - traefik.http.routers.siren.service=siren
+            - traefik.http.services.siren.loadbalancer.server.port=3000
+        restart: unless-stopped
+networks:
+    timefactory:
+        external: true
+volumes:
+    siren:
+        external: true

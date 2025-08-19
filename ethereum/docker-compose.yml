@@ -4,7 +4,7 @@ services:
         container_name: geth
         pull_policy: always
         volumes:
-            - geth:/.ethereum
+            - ethereum:/.ethereum
             - ./jwt.hex:/root/jwt.hex
             # openssl rand -hex 32 > jwt.hex
         networks:
@@ -14,27 +14,21 @@ services:
             - 30303:30303/udp
         expose:
             - 8545
-            - 8546
             - 8551
         command: >
             --ipcpath=/.ethereum/geth.ipc
-            --authrpc.addr 0.0.0.0
-            --authrpc.port 8551
-            --authrpc.jwtsecret=/root/jwt.hex
-            --authrpc.vhosts "*"
-            --syncmode snap
             --http
             --http.api eth,net,web3,txpool,debug,admin
             --http.corsdomain "*"
             --http.vhosts "*"
             --http.port 8545
             --http.addr 0.0.0.0
-            --ws
-            --ws.api eth,net,web3,txpool,debug,admin
-            --ws.origins "*"
-            --ws.port 8546
-            --ws.addr 0.0.0.0
-            --cache 12288
+            --authrpc.addr 0.0.0.0
+            --authrpc.port 8551
+            --authrpc.jwtsecret=/root/jwt.hex
+            --authrpc.vhosts "*"
+            --syncmode snap
+            --cache 16384
         restart: unless-stopped
 
     lighthouse:
@@ -50,7 +44,7 @@ services:
         expose:
             - 5052
         volumes:
-            - lighthouse:/.lighthouse
+            - ethereum:/.lighthouse
             - ./jwt.hex:/root/jwt.hex
         command: >
             lighthouse
@@ -64,6 +58,7 @@ services:
             --checkpoint-sync-url https://mainnet.checkpoint.sigp.io
             --disable-backfill-rate-limiting
             --genesis-backfill
+            --gui
         restart: unless-stopped
         depends_on:
             - geth
@@ -71,7 +66,5 @@ networks:
     timefactory:
         external: true
 volumes:
-    geth:
-        external: true
-    lighthouse:
+    ethereum:
         external: true
