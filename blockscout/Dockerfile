@@ -31,6 +31,10 @@ RUN mix compile
 RUN mkdir -p /opt/release && \
     mix release blockscout && \
     mv _build/${MIX_ENV}/rel/blockscout /opt/release
+# Copy config_helper.exs and any other required files to the release directory
+RUN cp /app/blockscout/config/config_helper.exs /opt/release/blockscout/config_helper.exs && \
+    cp /app/blockscout/config/config_helper.exs /opt/release/blockscout/releases/$(cat /opt/release/blockscout/releases/start_erl.data | cut -d' ' -f2)/config_helper.exs
+
 
 ##############################################################
 FROM hexpm/elixir:1.17.3-erlang-27.3.4-alpine-3.21.3
@@ -83,11 +87,15 @@ ENV COIN_BALANCE_HISTORY_DAYS=0
 ENV RE_CAPTCHA_DISABLED=false
 ENV DECODE_NOT_A_CONTRACT_CALLS=true
 ENV NFT_MEDIA_HANDLER_ENABLED=true
+ENV PORT=4000
+
 
 COPY --from=builder --chown=appuser /opt/release/blockscout .
+COPY --from=builder /app/blockscout/config/config_helper.exs ./config/config_helper.exs
 
 RUN mkdir dets && mkdir temp && chown -R appuser /app
 
 USER appuser
+EXPOSE 4000
 ENTRYPOINT ["sh", "-c"]
 CMD ["bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"]
