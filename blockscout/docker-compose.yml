@@ -10,6 +10,21 @@ services:
             - DATABASE_URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout?ssl=false
             - USER_OPS_INDEXER__DATABASE__CONNECT__URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout?ssl=false
             - REDIS_URL=redis://redis:6379/1
+            - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=true
+            - CHAIN_TYPE=ethereum
+            - ETHEREUM_JSONRPC_VARIANT=geth
+            - ETHEREUM_JSONRPC_TRANSPORT=ipc
+            - IPC_PATH=/.ethereum/geth.ipc
+            - ETHEREUM_JSONRPC_HTTP_URL=http://geth:8545
+            - ETHEREUM_JSONRPC_WS_URL=ws://geth:8546
+            - ETHEREUM_JSONRPC_TRACE_URL=http://geth:8545
+            - ETHEREUM_JSONRPC_FALLBACK_HTTP_URL=http://geth:8545
+            - ETHEREUM_JSONRPC_FALLBACK_TRACE_URL=http://geth:8545
+            - INDEXER_BEACON_RPC_URL=http://lighthouse:5052
+            - ETHEREUM_JSONRPC_GETH_TRACE_BY_BLOCK=true
+            - DECODE_NOT_A_CONTRACT_CALLS=true
+            - API_V2_ENABLED=true
+            - LOG_LEVEL=info
         networks:
             - timefactory
         expose:
@@ -17,7 +32,7 @@ services:
         volumes:
             - blockscout:/app/logs/
             - blockscout:/app/dets/
-            - ethereum:/.ethereum:ro
+            - ethereum:/.ethereum
     sig-provider:
         container_name: sig-provider
         image: ghcr.io/blockscout/sig-provider

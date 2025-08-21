@@ -12,6 +12,8 @@ WORKDIR /app/blockscout
 
 ENV MIX_ENV="prod"
 ENV MIX_HOME=/opt/mix
+ARG CHAIN_TYPE=ethereum
+ENV CHAIN_TYPE=$CHAIN_TYPE
 RUN mix local.hex --force
 RUN mix do deps.get, local.rebar --force, deps.compile --skip-umbrella-children
 
@@ -63,9 +65,6 @@ ENV NETWORK=ethereum
 ENV COIN=ETH
 ENV ECTO_USE_SSL=false
 
-ENV ETHEREUM_JSONRPC_VARIANT=geth
-ENV ETHEREUM_JSONRPC_TRANSPORT=ipc
-ENV IPC_PATH=/.ethereum/geth.ipc
 
 ENV API_GRAPHQL_ENABLED=false
 ENV API_V2_ENABLED=true
@@ -77,18 +76,16 @@ ENV MICROSERVICE_ACCOUNT_ABSTRACTION_ENABLED=true
 ENV MICROSERVICE_SIG_PROVIDER_ENABLED=true
 ENV MICROSERVICE_SC_VERIFIER_ENABLED=true
 ENV MICROSERVICE_SC_VERIFIER_TYPE=eth_bytecode_db
-ENV MICROSERVICE_SC_VERIFIER_TYPE=sc_verifier
 ENV MICROSERVICE_ACCOUNT_ABSTRACTION_URL=http://user-ops-indexer:8050/
 ENV MICROSERVICE_SIG_PROVIDER_URL=http://sig-provider:8050/
 ENV MICROSERVICE_SC_VERIFIER_URL=http://smart-contract-verifier:8050/
-
 ENV TXS_STATS_DAYS_TO_COMPILE_AT_INIT=0
 ENV COIN_BALANCE_HISTORY_DAYS=0
 ENV RE_CAPTCHA_DISABLED=false
 ENV DECODE_NOT_A_CONTRACT_CALLS=true
-ENV NFT_MEDIA_HANDLER_ENABLED=true
+ENV NFT_MEDIA_HANDLER_ENABLED=false
 ENV PORT=4000
-
+ENV FIRST_BLOCK=1
 
 COPY --from=builder --chown=appuser /opt/release/blockscout .
 COPY --from=builder /app/blockscout/config/config_helper.exs ./config/config_helper.exs
