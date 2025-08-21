@@ -4,8 +4,8 @@ services:
         container_name: traefik
         restart: always
         ports:
-            - 80:80/tcp # http
-            - 443:443/tcp # https
+            - 80:80
+            - 443:443
             - 443:443/udp # https http3 quic
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro

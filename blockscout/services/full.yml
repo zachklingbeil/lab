@@ -1,0 +1,77 @@
+services:
+    sig-provider:
+        container_name: sig-provider
+        image: ghcr.io/blockscout/sig-provider
+        pull_policy: always
+        restart: always
+        networks:
+            - timefactory
+        expose:
+            - 8050
+    user-ops-indexer:
+        image: ghcr.io/blockscout/user-ops-indexer
+        container_name: user-ops-indexer
+        pull_policy: always
+        restart: always
+        env_file:
+            - ../.env
+        environment:
+            - USER_OPS_INDEXER__INDEXER__RPC_URL=http://geth:8545
+            - USER_OPS_INDEXER__DATABASE__CONNECT__URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout
+            - USER_OPS_INDEXER__SERVER__HTTP__ENABLED=true
+            - USER_OPS_INDEXER__SERVER__HTTP__ADDR=0.0.0.0:8050
+            - USER_OPS_INDEXER__SERVER__HTTP__MAX_BODY_SIZE=2097152
+            - USER_OPS_INDEXER__SERVER__GRPC__ENABLED=false
+            - USER_OPS_INDEXER__SERVER__GRPC__ADDR=0.0.0.0:8051
+            - USER_OPS_INDEXER__API__MAX_PAGE_SIZE=100
+            - USER_OPS_INDEXER__INDEXER__CONCURRENCY=5
+            - USER_OPS_INDEXER__INDEXER__ENTRYPOINTS__V06=true
+            - USER_OPS_INDEXER__INDEXER__ENTRYPOINTS__V07=true
+            - USER_OPS_INDEXER__INDEXER__REALTIME__ENABLED=true
+            - USER_OPS_INDEXER__INDEXER__PAST_RPC_LOGS_INDEXER__ENABLED=true
+            - USER_OPS_INDEXER__INDEXER__PAST_RPC_LOGS_INDEXER__BLOCK_RANGE=1000
+            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__ENABLED=true
+            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__START_BLOCK=-100000
+            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__END_BLOCK=0
+            - USER_OPS_INDEXER__DATABASE__CREATE_DATABASE=false
+            - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=false
+            - USER_OPS_INDEXER__METRICS__ENABLED=false
+            - USER_OPS_INDEXER__JAEGER__ENABLED=false
+            - USER_OPS_INDEXER__TRACING__ENABLED=true
+            - USER_OPS_INDEXER__TRACING__FORMAT=default
+        networks:
+            - timefactory
+        expose:
+            - 8050
+    sc-verifier:
+        image: ghcr.io/blockscout/smart-contract-verifier
+        container_name: smart-contract-verifier
+        pull_policy: always
+        restart: always
+        networks:
+            - timefactory
+        expose:
+            - 8050
+        environment:
+            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__ENABLED=true
+            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__ADDR=0.0.0.0:8050
+            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__MAX_BODY_SIZE=2097152
+            - SMART_CONTRACT_VERIFIER__SERVER__GRPC__ENABLED=false
+            - SMART_CONTRACT_VERIFIER__SERVER__GRPC__ADDR=0.0.0.0:8051
+            - SMART_CONTRACT_VERIFIER__SOLIDITY__ENABLED=true
+            - SMART_CONTRACT_VERIFIER__SOLIDITY__COMPILERS_DIR=/tmp/solidity-compilers
+            - SMART_CONTRACT_VERIFIER__SOLIDITY__REFRESH_VERSIONS_SCHEDULE=0 0 * * * * *
+            - SMART_CONTRACT_VERIFIER__SOLIDITY__FETCHER__LIST__LIST_URL=https://solc-bin.ethereum.org/linux-amd64/list.json
+            - SMART_CONTRACT_VERIFIER__VYPER__ENABLED=true
+            - SMART_CONTRACT_VERIFIER__VYPER__COMPILERS_DIR=/tmp/vyper-compilers
+            - SMART_CONTRACT_VERIFIER__VYPER__REFRESH_VERSIONS_SCHEDULE=0 0 * * * * *
+            - SMART_CONTRACT_VERIFIER__VYPER__FETCHER__LIST__LIST_URL=https://raw.githubusercontent.com/blockscout/solc-bin/main/vyper.list.json
+            - SMART_CONTRACT_VERIFIER__SOURCIFY__ENABLED=true
+            - SMART_CONTRACT_VERIFIER__SOURCIFY__API_URL=https://sourcify.dev/server/
+            - SMART_CONTRACT_VERIFIER__SOURCIFY__VERIFICATION_ATTEMPTS=3
+            - SMART_CONTRACT_VERIFIER__SOURCIFY__REQUEST_TIMEOUT=10
+            - SMART_CONTRACT_VERIFIER__METRICS__ENABLED=false
+            - SMART_CONTRACT_VERIFIER__JAEGER__ENABLED=false
+networks:
+    timefactory:
+        external: true

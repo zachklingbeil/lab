@@ -5,21 +5,15 @@ WORKDIR /app
 RUN apk --no-cache --update add \
     alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file gcompat libstdc++ curl ca-certificates git make bash
 
-# Cache elixir deps
-COPY mix.exs mix.lock ./
-COPY apps/explorer/mix.exs ./apps/explorer/
-COPY apps/ethereum_jsonrpc/mix.exs ./apps/ethereum_jsonrpc/
-COPY apps/indexer/mix.exs ./apps/indexer/
-COPY apps/utils/mix.exs ./apps/utils/
+# Clone the Blockscout repository
+RUN git clone --depth 1 https://github.com/blockscout/blockscout.git /app/blockscout
+
+WORKDIR /app/blockscout
 
 ENV MIX_ENV="prod"
 ENV MIX_HOME=/opt/mix
 RUN mix local.hex --force
 RUN mix do deps.get, local.rebar --force, deps.compile --skip-umbrella-children
-
-COPY config ./config
-COPY rel ./rel
-COPY apps ./apps
 
 ##############################################################
 FROM builder-deps AS builder
@@ -28,6 +22,8 @@ ENV ADMIN_PANEL_ENABLED=false
 ENV DISABLE_WEBAPP=true
 ENV DISABLE_API=false
 ENV DISABLE_INDEXER=false
+
+WORKDIR /app/blockscout
 
 # Run backend compilation
 RUN mix compile
@@ -65,6 +61,7 @@ ENV ECTO_USE_SSL=false
 
 ENV ETHEREUM_JSONRPC_VARIANT=geth
 ENV ETHEREUM_JSONRPC_TRANSPORT=ipc
+ENV IPC_PATH=/.ethereum/geth.ipc
 
 ENV API_GRAPHQL_ENABLED=false
 ENV API_V2_ENABLED=true
@@ -87,11 +84,10 @@ ENV RE_CAPTCHA_DISABLED=false
 ENV DECODE_NOT_A_CONTRACT_CALLS=true
 ENV NFT_MEDIA_HANDLER_ENABLED=true
 
-
 COPY --from=builder --chown=appuser /opt/release/blockscout .
-COPY --from=builder --chown=appuser /app/config/config_helper.exs ./config/config_helper.exs
-COPY --from=builder --chown=appuser /app/config/assets/precompiles-arbitrum.json ./config/assets/precompiles-arbitrum.json
 
 RUN mkdir dets && mkdir temp && chown -R appuser /app
 
 USER appuser
+ENTRYPOINT ["sh", "-c"]
+CMD ["bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"]
