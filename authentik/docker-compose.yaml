@@ -1,6 +1,6 @@
 services:
     server:
-        image: ghcr.io/goauthentik/server:2025.6.4
+        image: ghcr.io/goauthentik/server:2025.8.1
         container_name: authentik
         restart: unless-stopped
         command: server
@@ -18,11 +18,11 @@ services:
             AUTHENTIK_REDIS__DB: 2
             AUTHENTIK_ERROR_REPORTING__ENABLED: false
             AUTHENTIK_EMAIL__HOST: smtp.resend.com
-            AUTHENTIK_EMAIL__PORT: 587
+            AUTHENTIK_EMAIL__PORT: 465
             AUTHENTIK_EMAIL__USERNAME: resend
             AUTHENTIK_EMAIL__PASSWORD: ${RESEND_API_KEY:?Resend API key required}
-            AUTHENTIK_EMAIL__USE_TLS: true
-            AUTHENTIK_EMAIL__USE_SSL: false
+            AUTHENTIK_EMAIL__USE_TLS: false
+            AUTHENTIK_EMAIL__USE_SSL: true
             AUTHENTIK_EMAIL__TIMEOUT: 10
             AUTHENTIK_EMAIL__FROM: info@timefactory.io
         networks:
@@ -37,7 +37,7 @@ services:
             - traefik.http.services.authentik.loadbalancer.server.port=9000
 
     worker:
-        image: ghcr.io/goauthentik/server:2025.6.4
+        image: ghcr.io/goauthentik/server:2025.8.1
         restart: unless-stopped
         command: worker
         environment:
