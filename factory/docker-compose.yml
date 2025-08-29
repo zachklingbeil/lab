@@ -1,0 +1,20 @@
+services:
+    factory:
+        container_name: factory
+        image: registry.timefactory.io/factory
+        volumes:
+            - ./atomic.json:/factory/atomic.json
+        networks:
+            - timefactory
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.factory.rule=Host(`api.timefactory.io`)
+            - traefik.http.routers.factory.entrypoints=websecure
+            - traefik.http.routers.factory.tls=true
+            - traefik.http.routers.factory.tls.certresolver=cloudflare
+            - traefik.http.routers.factory.service=factory
+            - traefik.http.services.factory.loadbalancer.server.port=1001
+
+networks:
+    timefactory:
+        external: true

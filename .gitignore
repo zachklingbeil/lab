@@ -2,4 +2,5 @@ auth
 jwt.hex
 acme.json
 /keys
-pocketid/data
+data/
+authentik/media

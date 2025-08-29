@@ -1,20 +1,172 @@
-[
-	{
+{
+	"providers": {
 		"github": {
-			"BaseURL": "https://api.github.com",
-			"Name": "GitHub"
+			"endpoints": {
+				"authorization": "https://github.com/login/oauth/authorize",
+				"token": "https://github.com/login/oauth/access_token",
+				"user": "https://api.github.com/user",
+				"api": "https://api.github.com",
+				"refresh": "https://github.com/login/oauth/access_token",
+				"revoke": "https://api.github.com/applications/{client_id}/grant",
+				"redirect": "https://auth.timefactory.io/source/oauth/callback/github/"
+			},
+			"credentials": {
+				"client_id": "github-client-id",
+				"client_secret": "github-client-secret"
+			},
+			"oauth": {
+				"response_type": "code",
+				"scopes": ["repo", "user", "admin:org"],
+				"state": "random-state-string",
+				"grant_type": "authorization_code"
+			},
+			"callbacks": {
+				"success": "https://auth.timefactory.io/source/oauth/callback/github/",
+				"redirect": "https://auth.timefactory.io/if/flow/default-source-authentication/"
+			},
+			"property_mappings": {
+				"user_mappings": {
+					"email": "email",
+					"github_id": "id",
+					"public_repos": "public_repos"
+				},
+				"group_mappings": {
+					"organizations": "organizations_url",
+					"admin_permissions": "site_admin"
+				}
+			},
+			"api_capabilities": {
+				"repositories": true,
+				"user_management": true,
+				"organizations": true,
+				"rate_limit": 5000
+			}
 		},
 		"coinbase": {
-			"BaseURL": "https://api.coinbase.com/v2",
-			"Name": "coinbase"
+			"endpoints": {
+				"authorization": "https://www.coinbase.com/oauth/authorize",
+				"token": "https://api.coinbase.com/oauth/token",
+				"user": "https://api.coinbase.com/v2/user",
+				"api": "https://api.coinbase.com/v2",
+				"refresh": "https://api.coinbase.com/oauth/token",
+				"revoke": "https://api.coinbase.com/oauth/revoke"
+			},
+			"credentials": {
+				"client_id": "client-id",
+				"client_secret": "client-secret"
+			},
+			"oauth": {
+				"response_type": "code",
+				"scopes": [
+					"wallet:user:read",
+					"wallet:accounts:read",
+					"wallet:transactions:read"
+				],
+				"state": "random-state-string",
+				"grant_type": "authorization_code"
+			},
+			"callbacks": {
+				"success": "https://auth.timefactory.io/source/oauth/callback/coinbase/",
+				"redirect": "https://auth.timefactory.io/if/flow/default-source-authentication/"
+			},
+			"property_mappings": {
+				"user_mappings": {
+					"email": "email",
+					"coinbase_id": "id"
+				},
+				"account_mappings": {
+					"primary_account": "primary_account",
+					"country": "country.name",
+					"currency": "native_currency",
+					"time_zone": "time_zone",
+					"verified": "verified"
+				}
+			},
+			"api_capabilities": {
+				"accounts": true,
+				"transactions": true,
+				"prices": true,
+				"rate_limit": 10000
+			}
 		},
-		"broker": {
-			"BaseURL": "https://api.schwabapi.com/trader/v1",
-			"Name": "schwab"
+		"schwab": {
+			"endpoints": {
+				"authorization": "https://api.schwabapi.com/v1/oauth/authorize",
+				"token": "https://api.schwabapi.com/v1/oauth/token",
+				"user": "https://api.schwabapi.com/trader/v1/accounts",
+				"api": "https://api.schwabapi.com/trader/v1",
+				"marketdata": "https://api.schwabapi.com/marketdata/v1",
+				"refresh": "https://api.schwabapi.com/v1/oauth/token",
+				"revoke": "https://api.schwabapi.com/v1/oauth/revoke"
+			},
+			"credentials": {
+				"client_id": "schwab-consumer-key",
+				"client_secret": "schwab-client-secret"
+			},
+			"oauth": {
+				"response_type": "code",
+				"scopes": [],
+				"state": "random-state-string",
+				"grant_type": "authorization_code",
+				"auth_method": "basic_auth_header"
+			},
+			"callbacks": {
+				"success": "https://auth.timefactory.io/source/oauth/callback/schwab/",
+				"redirect": "https://auth.timefactory.io/if/flow/default-source-authentication/"
+			},
+			"property_mappings": {
+				"user_mappings": {
+					"username": "userId",
+					"schwab_id": "userId",
+					"account_status": "status"
+				},
+				"account_mappings": {
+					"accounts": "accounts",
+					"account_numbers": "accounts[*].accountNumber",
+					"account_types": "accounts[*].type",
+					"positions": "accounts[*].positions"
+				}
+			},
+			"api_capabilities": {
+				"account_data": true,
+				"market_data": true,
+				"trading": true,
+				"rate_limit": 120
+			},
+			"schwab_specifics": {
+				"authorization_url_template": "https://api.schwabapi.com/v1/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}",
+				"callback_params": ["code", "session"],
+				"token_auth_method": "basic_header",
+				"token_content_type": "application/x-www-form-urlencoded"
+			}
+		}
+	},
+	"config": {
+		"base_url": "https://auth.timefactory.io",
+		"default_state_length": 32,
+		"token_expiry_buffer": 300,
+		"authentik": {
+			"api_url": "https://auth.timefactory.io/api/v3/",
+			"token_url": "https://auth.timefactory.io/application/o/token/",
+			"userinfo_url": "https://auth.timefactory.io/application/o/userinfo/"
 		},
-		"market": {
-			"BaseURL": "https://api.schwabapi.com/marketdata/v1",
-			"Name": "market"
+		"token_storage": {
+			"method": "authentik_property_mappings",
+			"encryption": true,
+			"refresh_automatic": true
+		},
+		"unified_scope_mapping": {
+			"name": "OAuth Provider Tokens",
+			"scope_name": "oauth:tokens",
+			"type": "scope_mapping",
+			"expression": "# Get the source slug from context\nsource_slug = request.context.get('source_slug', 'unknown')\n\n# Base token data\ntoken_data = {\n    'access_token': request.context.get('oauth_access_token'),\n    'token_type': request.context.get('oauth_token_type'),\n    'scope': request.context.get('oauth_scope'),\n    'expires_in': request.context.get('oauth_expires_in'),\n    'refresh_token': request.context.get('oauth_refresh_token')\n}\n\n# Filter out None values\nfiltered_tokens = {k: v for k, v in token_data.items() if v is not None}\n\n# Return tokens organized by provider\nreturn {\n    'tokens': {\n        source_slug: filtered_tokens\n    }\n}"
+		},
+		"property_mappings": {
+			"oauth_user_mapping": {
+				"name": "OAuth User Data Mapping",
+				"type": "oauth_source_property_mapping",
+				"expression": "# Get the source slug\nsource_slug = request.context.get('source_slug', 'unknown')\n\n# Get user info from OAuth response\nuser_info = request.context.get('oauth_userinfo', {})\n\n# Common mappings\nresult = {\n    'email': user_info.get('email', ''),\n    'name': user_info.get('name', ''),\n    f'{source_slug}_id': user_info.get('id', ''),\n}\n\n# Provider-specific mappings\nif source_slug == 'github':\n    result.update({\n        'github_username': user_info.get('login', ''),\n        'github_public_repos': user_info.get('public_repos', 0),\n        'github_avatar_url': user_info.get('avatar_url', ''),\n        'github_company': user_info.get('company', ''),\n        'github_location': user_info.get('location', '')\n    })\nelif source_slug == 'coinbase':\n    result.update({\n        'coinbase_username': user_info.get('username', ''),\n        'coinbase_verified': user_info.get('verified', False),\n        'coinbase_country': user_info.get('country', {}).get('name', ''),\n        'coinbase_currency': user_info.get('native_currency', '')\n    })\nelif source_slug == 'schwab':\n    result.update({\n        'schwab_user_id': user_info.get('userId', ''),\n        'schwab_account_status': user_info.get('status', '')\n    })\n\nreturn result"
+			}
 		}
 	}
-]
+}

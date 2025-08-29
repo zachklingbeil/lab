@@ -1,8 +1,99 @@
-# Authentik Email + Passkey Authentication Flow Implementation Guide (SIMPLIFIED)
+Here’s a **complete checklist of URLs and requirements** for integrating your API at `https://api.timefactory.io` with Authentik at `https://auth.timefactory.io`, and for connecting to third-party services (GitHub, Coinbase, Schwab):
 
-This guide walks you through implementing the Email + Passkey authentication flow directly in the Authentik web interface, with immediate login on passkey success and automatic "peers" group assignment.
+---
 
-## Overview
+## **1. Authentik (https://auth.timefactory.io) URLs**
+
+**Use these in your API backend OAuth2/OIDC client configuration:**
+
+| Purpose        | URL                                                                          |
+| -------------- | ---------------------------------------------------------------------------- |
+| Authorization  | `https://auth.timefactory.io/application/o/authorize/`                       |
+| Token          | `https://auth.timefactory.io/application/o/token/`                           |
+| User Info      | `https://auth.timefactory.io/application/o/userinfo/`                        |
+| Token Revoke   | `https://auth.timefactory.io/application/o/revoke/`                          |
+| End Session    | `https://auth.timefactory.io/application/o/end-session/`                     |
+| JWKS           | `https://auth.timefactory.io/application/o/jwks/`                            |
+| OIDC Discovery | `https://auth.timefactory.io/application/o/.well-known/openid-configuration` |
+
+---
+
+## **2. Your API (https://api.timefactory.io) URLs**
+
+**Register these in Authentik’s provider settings:**
+
+| Purpose                       | URL                                                  |
+| ----------------------------- | ---------------------------------------------------- |
+| Redirect URI                  | `https://api.timefactory.io/auth/callback`           |
+| Launch URL                    | `https://api.timefactory.io`                         |
+| (Optional) Backchannel Logout | `https://api.timefactory.io/auth/backchannel-logout` |
+
+---
+
+## **3. Third-Party Service URLs and Requirements**
+
+For each service, you must:
+
+### **A. Register your application with the third-party provider:**
+
+-   **GitHub:** https://github.com/settings/developers
+-   **Coinbase:** https://developers.coinbase.com/
+-   **Schwab:** https://developer.schwabapi.com/
+
+### **B. Provide these to the third-party service:**
+
+-   **Redirect URI:**
+
+    -   `https://api.timefactory.io/oauth/callback/github`
+    -   `https://api.timefactory.io/oauth/callback/coinbase`
+    -   `https://api.timefactory.io/oauth/callback/schwab`  
+        (One for each service, as required.)
+
+-   **Application Name, Description, Logo, etc.** (as required by the provider)
+
+### **C. Obtain from the third-party service:**
+
+-   **Client ID**
+-   **Client Secret**
+-   **Authorization URL**
+-   **Token URL**
+-   **API Base URL**
+-   **Scopes required for your use case**
+
+---
+
+## **4. Example Third-Party OAuth2 Endpoints**
+
+| Service  | Authorization URL                            | Token URL                                   | API Base URL                 |
+| -------- | -------------------------------------------- | ------------------------------------------- | ---------------------------- |
+| GitHub   | https://github.com/login/oauth/authorize     | https://github.com/login/oauth/access_token | https://api.github.com/      |
+| Coinbase | https://www.coinbase.com/oauth/authorize     | https://api.coinbase.com/oauth/token        | https://api.coinbase.com/v2/ |
+| Schwab   | https://api.schwabapi.com/v1/oauth/authorize | https://api.schwabapi.com/v1/oauth/token    | https://api.schwabapi.com/   |
+
+---
+
+## **5. What to Provide and What to Obtain**
+
+| To Authentik (from your API)      | To Your API (from Authentik)              | To Third-Party (from your API)   | To Your API (from Third-Party)      |
+| --------------------------------- | ----------------------------------------- | -------------------------------- | ----------------------------------- |
+| Redirect URI(s)                   | OIDC endpoints (see section 1)            | Redirect URI(s) for each service | Client ID, Client Secret, Endpoints |
+| Launch URL                        | Client ID, Client Secret (from Authentik) | App info (name, logo, etc.)      |                                     |
+| (Optional) Backchannel Logout URI |                                           |                                  |                                     |
+
+---
+
+## **Summary**
+
+-   **Configure Authentik** with your API’s redirect and launch URLs.
+-   **Configure your API** with Authentik’s OIDC endpoints and credentials.
+-   **Register your API** with each third-party service, providing the correct callback URLs.
+-   **Store and use** the client credentials and endpoints from each third-party service in your API for OAuth2 flows.
+
+---
+
+**This setup ensures secure SSO via Authentik and seamless integration with third-party APIs.**
+
+# Email + Passkey
 
 This flow provides a modern authentication experience where users can:
 
@@ -10,24 +101,6 @@ This flow provides a modern authentication experience where users can:
 -   Fall back to email verification for new users or recovery
 -   Automatically create accounts in the "peers" group
 -   Recover access via email if passkey fails
-
-### 6. Configure Application
-
-1. Navigate to **Applications** → **Applications**
-2. Select your application or create a new one
-3. Set **Authentication flow** to `hello-universe`
-
-## Key Features
-
-### **Simplified Flow Logic:**
-
-1. **All users follow the same path** - no admin/non-admin distinctions
-2. **Immediate login on passkey success** at two points in the flow
-3. **Automatic peers group assignment** for all new users
-4. **Email fallback** when passkey isn't available or fails
-5. **Recovery flow** for existing users with failed passkeys
-
-### **User Experience Flow:**
 
 #### **Scenario 1: Returning User with Working Passkey**
 
@@ -60,11 +133,3 @@ This flow provides a modern authentication experience where users can:
 -   **Automatic grouping**: All users in "peers" group
 -   **Recovery-friendly**: Email recovery for lost passkeys
 -   **Immediate login**: No unnecessary steps after successful passkey auth
-
-## Testing the Flow
-
-1. **Test with existing passkey user**: Should see passkey prompt → immediate login
-2. **Test with new user**: Should see email prompt → verification → account creation → passkey setup
-3. **Test recovery scenario**: Email prompt → failed passkey → recovery flow
-
-The flow ensures **immediate login** when passkey authentication succeeds, with email prompts only appearing when necessary, and automatically assigns all users to the peers group.

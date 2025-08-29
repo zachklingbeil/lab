@@ -3,6 +3,7 @@ services:
         image: traefik
         container_name: traefik
         restart: always
+        pull_policy: always
         ports:
             - 80:80
             - 443:443
