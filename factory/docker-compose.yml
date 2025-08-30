@@ -2,6 +2,8 @@ services:
     factory:
         container_name: factory
         image: registry.timefactory.io/factory
+        pull_policy: always
+        restart: unless-stopped
         volumes:
             - ./atomic.json:/factory/atomic.json
         networks:
@@ -14,6 +16,7 @@ services:
             - traefik.http.routers.factory.tls.certresolver=cloudflare
             - traefik.http.routers.factory.service=factory
             - traefik.http.services.factory.loadbalancer.server.port=1001
+            - traefik.http.routers.factory.middlewares=authentik@file
 
 networks:
     timefactory:
