@@ -17,14 +17,12 @@ services:
             - 8546
             - 8551
         command: >
-            --syncmode full 
+            --syncmode snap 
             --ipcpath=/.ethereum/geth.ipc
             --authrpc.addr 0.0.0.0
             --authrpc.port 8551
             --authrpc.jwtsecret=/root/jwt.hex
             --authrpc.vhosts "*"
-            --history.state=0
-            --gcmode archive
             --http
             --http.api eth,net,web3,txpool,debug,admin
             --http.corsdomain "*"
@@ -64,9 +62,6 @@ services:
             --execution-endpoint http://geth:8551
             --execution-jwt /root/jwt.hex
             --checkpoint-sync-url https://mainnet.checkpoint.sigp.io
-            --disable-backfill-rate-limiting
-            --genesis-backfill
-            --gui
         restart: unless-stopped
         depends_on:
             - geth

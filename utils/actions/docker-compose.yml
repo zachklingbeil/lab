@@ -17,6 +17,7 @@ services:
         networks:
             - timefactory # Use external network
         restart: always
+        pull_policy: always
 volumes:
     actions:
         external: true
