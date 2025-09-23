@@ -1,0 +1,25 @@
+Include /etc/ssh/sshd_config.d/*.conf
+
+Port 
+HostKey /etc/ssh/ssh_host_ed25519_key
+PermitRootLogin no
+PubkeyAuthentication yes
+PubkeyAcceptedAlgorithms ssh-ed25519
+AuthorizedKeysFile .config/ssh/authorized_keys
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+MaxAuthTries 3
+
+UsePAM yes
+AllowAgentForwarding yes
+AllowTcpForwarding yes
+X11Forwarding yes
+PermitTTY yes
+PrintMotd no
+TCPKeepAlive yes
+Compression no
+UseDNS no
+StrictModes yes
+
+AcceptEnv LANG LC_*
+Subsystem	sftp	/usr/lib/openssh/sftp-server

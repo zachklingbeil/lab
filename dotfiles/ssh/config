@@ -1,0 +1,22 @@
+Host *
+    IdentityFile ~/.ssh/zk
+
+Host timefactory
+    HostName 10.0.0.10
+    Port 
+    User zk
+    ForwardAgent yes
+    AddKeysToAgent yes
+    SetEnv TERM=xterm-256color
+    ControlMaster auto
+    ControlPath ~/.ssh/control-%C
+    ControlPersist 10m
+    LocalForward 5432 localhost:5432
+    LocalForward 6379 localhost:6379
+
+Host tailscale
+		HostName 100.111.24.59
+		User zk
+
+Host github.com
+    User git

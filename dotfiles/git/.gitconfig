@@ -1,0 +1,37 @@
+[user]
+    name = zachklingbeil
+    email = zach@zachklingbeil.com
+    signingkey = ~/.ssh/zk
+[color]
+    ui = auto
+[init]
+    defaultBranch = main
+[gpg]
+    format = ssh
+[commit]
+    gpgsign = true
+[core]
+    excludesfile = ~/.config/git/ignore
+    editor = nvim
+[push]
+    autoSetupRemote = true
+    default = upstream
+[pull]
+    rebase = true
+    ff = only
+[fetch]
+    prune = true
+[alias]
+    lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+# mac
+[credential "https://github.com"]
+  helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+  helper = !/opt/homebrew/bin/gh auth git-credential
+
+# linux
+[credential "https://github.com"]
+  helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+  helper = !/usr/bin/gh auth git-credential
