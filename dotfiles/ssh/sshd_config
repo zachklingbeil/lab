@@ -5,7 +5,7 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 PermitRootLogin no
 PubkeyAuthentication yes
 PubkeyAcceptedAlgorithms ssh-ed25519
-AuthorizedKeysFile .config/ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 MaxAuthTries 3
