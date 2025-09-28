@@ -24,7 +24,8 @@ services:
             - ETHEREUM_JSONRPC_GETH_TRACE_BY_BLOCK=true
             - DECODE_NOT_A_CONTRACT_CALLS=true
             - API_V2_ENABLED=true
-            - LOG_LEVEL=info
+            - LOGGER_LEVEL=error
+            - LOGGER_ROTATE_KEEP=2
         networks:
             - timefactory
         expose:

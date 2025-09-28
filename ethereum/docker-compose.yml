@@ -4,9 +4,10 @@ services:
         container_name: geth
         pull_policy: always
         volumes:
-            - ethereum:/.ethereum
+            - geth:/.ethereum
             - ./jwt.hex:/root/jwt.hex
             # openssl rand -hex 32 > jwt.hex
+            # --gcmode archive
         networks:
             - timefactory
         ports:
@@ -17,7 +18,7 @@ services:
         expose:
             - 8551
         command: >
-            --syncmode snap 
+            --syncmode full 
             --ipcpath=/.ethereum/geth.ipc
             --authrpc.addr 0.0.0.0
             --authrpc.port 8551
@@ -30,7 +31,6 @@ services:
             --http.port 8545
             --http.addr 0.0.0.0
             --history.state=0
-            --gcmode archive
             --ws
             --ws.api eth,net,web3,txpool,debug,admin
             --ws.origins "*"
@@ -52,7 +52,7 @@ services:
         expose:
             - 5052
         volumes:
-            - ethereum:/.lighthouse
+            - lighthouse:/.lighthouse
             - ./jwt.hex:/root/jwt.hex
         command: >
             lighthouse
@@ -73,5 +73,7 @@ networks:
     timefactory:
         external: true
 volumes:
-    ethereum:
+    geth:
+        external: true
+    lighthouse:
         external: true
