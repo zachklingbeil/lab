@@ -3,7 +3,7 @@ services:
         container_name: postgres
         image: postgres:alpine
         volumes:
-            - postgres:/var/lib/postgresql/data
+            - postgres:/var/lib/postgresql
             - ./postgres.conf:/etc/postgresql/postgres.conf
         networks:
             - timefactory
