@@ -1,0 +1,30 @@
+services:
+  tinyauth:
+    image: ghcr.io/steveiliop56/tinyauth:v4
+    container_name: tinyauth
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - tinyauth:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - SECRET=${SECRET}
+      - USERS=zk:$$2y$$05$$0HIqEzmyAWJBiv8735iwzOWNNLg7QLXzTEcPS9KJ7nSNKj7AaztXC
+      - APP_URL=https://tinyauth.zachklingbeil.com
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tinyauth.tls=true
+      - traefik.http.routers.tinyauth.entrypoints=websecure
+      - traefik.http.routers.tinyauth.tls.certresolver=cloudflare
+      - traefik.http.routers.tinyauth.rule=Host(`tinyauth.zachklingbeil.com`)
+      - traefik.http.middlewares.tinyauth.forwardauth.address=http://tinyauth:3000/api/auth/traefik
+      - traefik.http.services.tinyauth.loadbalancer.server.port=3000
+    networks:
+      - timefactory
+
+networks:
+  timefactory:
+    external: true
+volumes:
+  tinyauth:
+    external: true

@@ -8,7 +8,6 @@ api:
 
 log:
   level: INFO
-  # format: json
 
 accessLog: {}
 
@@ -36,7 +35,7 @@ providers:
     watch: true
     network: timefactory
     endpoint: "unix:///var/run/docker.sock"
-    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)"
+    # defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.timefactory.io`)"
     exposedByDefault: false
   file:
     directory: /etc/traefik/dynamic/

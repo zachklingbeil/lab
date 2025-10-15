@@ -12,8 +12,8 @@ services:
       - timefactory
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.pocket-id.rule=Host(`id.timefactory.io`)"
-      - traefik.http.routers.pocket-id.tls=true
+      - "traefik.http.routers.pocket-id.rule=Host(`id.zachklingbeil.com`)"
+      - "traefik.http.routers.pocket-id.tls=true"
       - "traefik.http.routers.pocket-id.entrypoints=websecure"
       - "traefik.http.routers.pocket-id.tls.certresolver=cloudflare"
       - "traefik.http.services.pocket-id.loadbalancer.server.port=1411"

@@ -3,3 +3,4 @@ acme.json
 /keys
 data/
 authentik/media
+*.log
