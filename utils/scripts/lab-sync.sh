@@ -20,7 +20,6 @@ sync_files() {
         --exclude='.DS_Store' \
         --exclude='*.swp' \
         --exclude='*.tmp' \
-        --exclude='.git/' \
         --exclude='.lab-sync.*' \
         "$HOME/.lab/" \
         "$REMOTE_USER@$REMOTE_HOST:~/.lab" 2>&1 | logger -t "$SCRIPT_NAME"

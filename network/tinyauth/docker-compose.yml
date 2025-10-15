@@ -9,8 +9,17 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - SECRET=${SECRET}
+      # echo $(htpasswd -nB zk) | sed -e s/\\$/\\$\\$/g
       - USERS=zk:$$2y$$05$$0HIqEzmyAWJBiv8735iwzOWNNLg7QLXzTEcPS9KJ7nSNKj7AaztXC
       - APP_URL=https://tinyauth.zachklingbeil.com
+      - PROVIDERS_POCKETID_CLIENT_ID=${POCKET_ID_CLIENT_ID}
+      - PROVIDERS_POCKETID_CLIENT_SECRET=${POCKET_ID_CLIENT_SECRET}
+      - PROVIDERS_POCKETID_AUTH_URL=https://id.zachklingbeil.com/authorize
+      - PROVIDERS_POCKETID_TOKEN_URL=https://id.zachklingbeil.com/api/oidc/token
+      - PROVIDERS_POCKETID_USER_INFO_URL=https://id.zachklingbeil.com/api/oidc/userinfo
+      - PROVIDERS_POCKETID_SCOPES=openid email profile groups
+      - PROVIDERS_POCKETID_NAME=Pocket ID
+      - OAUTH_AUTO_REDIRECT=pocketid
     labels:
       - traefik.enable=true
       - traefik.http.routers.tinyauth.tls=true
