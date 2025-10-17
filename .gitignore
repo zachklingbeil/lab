@@ -4,3 +4,4 @@ acme.json
 data/
 authentik/media
 *.log
+.stfolder
