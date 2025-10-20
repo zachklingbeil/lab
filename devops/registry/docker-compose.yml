@@ -12,7 +12,7 @@ services:
             - timefactory
         labels:
             - traefik.enable=true
-            - traefik.http.routers.registry.rule=Host(`registry.timefactory.io`) && PathPrefix(`/v2/`)
+            - traefik.http.routers.registry.rule=Host(`registry.zachklingbeil.com`) && PathPrefix(`/v2/`)
             - traefik.http.routers.registry.entrypoints=websecure
             - traefik.http.routers.registry.tls=true
             - traefik.http.routers.registry.tls.certresolver=cloudflare
