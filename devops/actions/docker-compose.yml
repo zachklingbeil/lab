@@ -1,46 +1,26 @@
 services:
-    ghr_frame:
+    actions:
         image: myoung34/github-runner
-        container_name: ghr_frame
+        container_name: actions
         environment:
-            REPO_URL: https://github.com/zachklingbeil/frame
-            RUNNER_NAME: ghr_frame
-            RUNNER_TOKEN: ${FRAME_TOKEN}
+            ORG_URL: https://github.com/timefactoryio
+            ORG_NAME: timefactoryio
+            RUNNER_NAME: actions_timefactory
+            RUNNER_TOKEN: ${ORG_RUNNER_TOKEN}
             RUNNER_WORKDIR: /runner/tmp/runner/work
             CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner
-            RUNNER_SCOPE: repo
+            RUNNER_SCOPE: org
             LABELS: linux,x64,gpu
             DISABLE_AUTOMATIC_DEREGISTRATION: true
         volumes:
-            - ghr_frame:/runner
-            - /var/run/docker.sock:/var/run/docker.sock
-        restart: always
-        pull_policy: always
-        networks:
-            - timefactory
-    ghr_pathless:
-        image: myoung34/github-runner
-        container_name: ghr_pathless
-        environment:
-            REPO_URL: https://github.com/zachklingbeil/pathless
-            RUNNER_NAME: ghr_pathless
-            RUNNER_TOKEN: ${PATHLESS_TOKEN}
-            RUNNER_WORKDIR: /runner/tmp/runner/work
-            CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner
-            RUNNER_SCOPE: repo
-            LABELS: linux,x64,gpu
-            DISABLE_AUTOMATIC_DEREGISTRATION: true
-        volumes:
-            - ghr_pathless:/runner
+            - actions:/runner
             - /var/run/docker.sock:/var/run/docker.sock
         restart: always
         pull_policy: always
         networks:
             - timefactory
 volumes:
-    ghr_frame:
-        external: true
-    ghr_pathless:
+    actions:
         external: true
 
 networks:
