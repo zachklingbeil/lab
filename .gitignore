@@ -5,3 +5,4 @@ data/
 authentik/media
 *.log
 .stfolder
+htpasswd

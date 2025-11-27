@@ -1,0 +1,35 @@
+services:
+  pathless:
+    image: timefactory/pathless
+    container_name: pathless
+    restart: unless-stopped
+    networks:
+      - timefactory
+    environment:
+      - TITLE=timefactory
+      - API_URL=demo.timefactory.io
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pathless.rule=Host(`timefactory.io`)
+      - traefik.http.routers.pathless.entrypoints=websecure
+      - traefik.http.routers.pathless.tls=true
+      - traefik.http.routers.pathless.tls.certresolver=cloudflare
+      - traefik.http.services.pathless.loadbalancer.server.port=1000
+
+  demo:
+    image: timefactory/demo
+    container_name: demo
+    restart: unless-stopped
+    networks:
+      - timefactory
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.demo.rule=Host(`demo.timefactory.io`)
+      - traefik.http.routers.demo.entrypoints=websecure
+      - traefik.http.routers.demo.tls=true
+      - traefik.http.routers.demo.tls.certresolver=cloudflare
+      - traefik.http.services.demo.loadbalancer.server.port=1001
+
+networks:
+  timefactory:
+    external: true

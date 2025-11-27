@@ -1,0 +1,85 @@
+name: Release Go Library
+
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+  workflow_dispatch:
+
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 'stable'
+        cache: true
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Run go mod tidy
+      run: go mod tidy
+
+    - name: Verify go.sum
+      run: |
+        if [ -n "$(git status --porcelain go.sum)" ]; then
+          echo "go.sum is not up to date"
+          exit 1
+        fi
+
+    - name: Extract release notes
+      id: extract_notes
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+
+        # Try to extract from CHANGELOG.md if it exists
+        if [ -f CHANGELOG.md ]; then
+          NOTES=$(awk "/^## \[?${TAG#v}\]?/,/^## \[?[0-9]/" CHANGELOG.md | sed '1d;$d')
+        fi
+
+        # Fallback to tag annotation if no CHANGELOG
+        if [ -z "$NOTES" ]; then
+          NOTES=$(git tag -l --format='%(contents)' "$TAG")
+        fi
+
+        # Fallback to commit messages if no annotation
+        if [ -z "$NOTES" ]; then
+          PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            NOTES=$(git log --pretty=format:"- %s" "$PREV_TAG..$TAG")
+          else
+            NOTES=$(git log --pretty=format:"- %s" "$TAG")
+          fi
+        fi
+
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body: ${{ steps.extract_notes.outputs.notes }}
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
+
+    - name: Update Go package index
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        echo "Published ${{ github.repository }}@${TAG}"
+        echo "Users can now use: go get ${{ github.repository }}@${TAG}"

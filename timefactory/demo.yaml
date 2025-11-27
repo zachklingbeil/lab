@@ -1,0 +1,22 @@
+services:
+  pathless:
+    image: timefactory/pathless
+    container_name: pathless
+    restart: unless-stopped
+    networks:
+    - pathless
+    ports:
+    - 127.0.0.1:1000:1000
+
+  demo:
+    image: timefactory/demo
+    container_name: demo
+    restart: unless-stopped
+    networks:
+    - pathless
+    ports:
+    - 127.0.0.1:1001:1001
+
+networks:
+  pathless:
+    driver: bridge
