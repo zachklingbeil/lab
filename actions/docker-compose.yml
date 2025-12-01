@@ -1,12 +1,11 @@
 services:
     actions:
         image: myoung34/github-runner
-        container_name: actions
         environment:
             ORG_URL: https://github.com/timefactoryio
             ORG_NAME: timefactoryio
-            RUNNER_NAME: actions_timefactory
-            RUNNER_TOKEN: ${ORG_RUNNER_TOKEN}
+            RUNNER_NAME: runner
+            RUNNER_TOKEN: ${RUNNER_TOKEN}
             RUNNER_WORKDIR: /runner/tmp/runner/work
             CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner
             RUNNER_SCOPE: org
@@ -14,6 +13,44 @@ services:
             DISABLE_AUTOMATIC_DEREGISTRATION: true
         volumes:
             - actions:/runner
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        pull_policy: always
+        networks:
+            - timefactory
+    actions-0:
+        image: myoung34/github-runner
+        environment:
+            ORG_URL: https://github.com/timefactoryio
+            ORG_NAME: timefactoryio
+            RUNNER_NAME: runner0
+            RUNNER_TOKEN: ${RUNNER_TOKEN_0}
+            RUNNER_WORKDIR: /runner0/tmp/runner/work
+            CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner0
+            RUNNER_SCOPE: org
+            LABELS: linux,x64,gpu
+            DISABLE_AUTOMATIC_DEREGISTRATION: true
+        volumes:
+            - actions:/runner0
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        pull_policy: always
+        networks:
+            - timefactory
+    actions-1:
+        image: myoung34/github-runner
+        environment:
+            ORG_URL: https://github.com/timefactoryio
+            ORG_NAME: timefactoryio
+            RUNNER_NAME: runner1
+            RUNNER_TOKEN: ${RUNNER_TOKEN_1}
+            RUNNER_WORKDIR: /runner1/tmp/runner/work
+            CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner1
+            RUNNER_SCOPE: org
+            LABELS: linux,x64,gpu
+            DISABLE_AUTOMATIC_DEREGISTRATION: true
+        volumes:
+            - actions:/runner1
             - /var/run/docker.sock:/var/run/docker.sock
         restart: always
         pull_policy: always
