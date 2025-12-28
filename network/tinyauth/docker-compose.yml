@@ -10,13 +10,13 @@ services:
     environment:
       - SECRET=${SECRET}
       # echo $(htpasswd -nB zk) | sed -e s/\\$/\\$\\$/g
-      - USERS=zk:$$2y$$05$$0HIqEzmyAWJBiv8735iwzOWNNLg7QLXzTEcPS9KJ7nSNKj7AaztXC
-      - APP_URL=https://tinyauth.zachklingbeil.com
+      - USERS=${USERS}
+      - APP_URL=https://auth.timefactory.io
       - PROVIDERS_POCKETID_CLIENT_ID=${POCKET_ID_CLIENT_ID}
       - PROVIDERS_POCKETID_CLIENT_SECRET=${POCKET_ID_CLIENT_SECRET}
-      - PROVIDERS_POCKETID_AUTH_URL=https://id.zachklingbeil.com/authorize
-      - PROVIDERS_POCKETID_TOKEN_URL=https://id.zachklingbeil.com/api/oidc/token
-      - PROVIDERS_POCKETID_USER_INFO_URL=https://id.zachklingbeil.com/api/oidc/userinfo
+      - PROVIDERS_POCKETID_AUTH_URL=https://id.timefactory.io/authorize
+      - PROVIDERS_POCKETID_TOKEN_URL=https://id.timefactory.io/api/oidc/token
+      - PROVIDERS_POCKETID_USER_INFO_URL=https://id.timefactory.io/api/oidc/userinfo
       - PROVIDERS_POCKETID_SCOPES=openid email profile groups
       - PROVIDERS_POCKETID_NAME=Pocket ID
       - OAUTH_AUTO_REDIRECT=pocketid
@@ -25,7 +25,7 @@ services:
       - traefik.http.routers.tinyauth.tls=true
       - traefik.http.routers.tinyauth.entrypoints=websecure
       - traefik.http.routers.tinyauth.tls.certresolver=cloudflare
-      - traefik.http.routers.tinyauth.rule=Host(`tinyauth.zachklingbeil.com`)
+      - traefik.http.routers.tinyauth.rule=Host(`auth.timefactory.io`)
       - traefik.http.middlewares.tinyauth.forwardauth.address=http://tinyauth:3000/api/auth/traefik
       - traefik.http.services.tinyauth.loadbalancer.server.port=3000
     networks:

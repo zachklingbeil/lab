@@ -6,7 +6,7 @@ services:
         volumes:
             - geth:/.ethereum
             - ./jwt.hex:/root/jwt.hex
-            # openssl rand -hex 32 > jwt.hex
+        # openssl rand -hex 32 > jwt.hex
         networks:
             - timefactory
         ports:
@@ -17,24 +17,26 @@ services:
         expose:
             - 8551
         command: >
-            --mainnet
-            --syncmode snap 
-            --ipcpath=/.ethereum/geth.ipc
-            --authrpc.addr 0.0.0.0
-            --authrpc.port 8551
-            --authrpc.jwtsecret=/root/jwt.hex
-            --authrpc.vhosts "*"
-            --http
-            --http.api eth,net,web3,txpool,debug,admin
-            --http.corsdomain "*"
-            --http.vhosts "*"
-            --http.port 8545
-            --http.addr 0.0.0.0
-            --ws
-            --ws.api eth,net,web3,txpool,debug,admin
-            --ws.origins "*"
-            --ws.port 8546
-            --ws.addr 0.0.0.0
+            --mainnet 
+            --syncmode full
+            --gcmode archive  
+            --history.state=0
+            --ipcpath=/.ethereum/geth.ipc 
+            --authrpc.addr 0.0.0.0 
+            --authrpc.port 8551 
+            --authrpc.jwtsecret=/root/jwt.hex 
+            --authrpc.vhosts "*" 
+            --http 
+            --http.api eth,net,web3,txpool,debug,admin 
+            --http.corsdomain "*" 
+            --http.vhosts "*" 
+            --http.port 8545 
+            --http.addr 0.0.0.0 
+            --ws 
+            --ws.api eth,net,web3,txpool,debug,admin 
+            --ws.origins "*" 
+            --ws.port 8546 
+            --ws.addr 0.0.0.0 
             --cache 16384
         restart: unless-stopped
 
@@ -54,16 +56,17 @@ services:
             - lighthouse:/.lighthouse
             - ./jwt.hex:/root/jwt.hex
         command: >
-            lighthouse
-            --network mainnet
-            beacon
-            --http
-            --http-address 0.0.0.0
-            --http-port 5052
-            --execution-endpoint http://geth:8551
-            --execution-jwt /root/jwt.hex
-            --checkpoint-sync-url https://mainnet.checkpoint.sigp.io
-            --disable-backfill-rate-limiting
+            lighthouse 
+            --network mainnet 
+            beacon 
+            --http 
+            --http-address 0.0.0.0 
+            --http-port 5052 
+            --execution-endpoint http://geth:8551 
+            --execution-jwt /root/jwt.hex 
+            --checkpoint-sync-url https://mainnet.checkpoint.sigp.io 
+            --disable-backfill-rate-limiting 
+            --genesis-backfill
         restart: unless-stopped
         depends_on:
             - geth
