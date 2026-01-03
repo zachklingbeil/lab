@@ -20,5 +20,5 @@ networks:
         external: true
 
 volumes:
-    postgres:
+    redis:
         external: true

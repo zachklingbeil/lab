@@ -3,11 +3,12 @@ services:
     image: timefactory/pathless
     container_name: pathless
     restart: unless-stopped
+    pull_policy: always
     networks:
       - timefactory
     environment:
-      - TITLE=timefactory
-      - API_URL=demo.timefactory.io
+      - PATHLESS_URL=https://timefactory.io
+      - API_URL=https://demo.timefactory.io
     labels:
       - traefik.enable=true
       - traefik.http.routers.pathless.rule=Host(`timefactory.io`)
@@ -20,6 +21,10 @@ services:
     image: timefactory/demo
     container_name: demo
     restart: unless-stopped
+    pull_policy: always
+    environment:
+      - PATHLESS_URL=https://timefactory.io
+      - API_URL=https://demo.timefactory.io
     networks:
       - timefactory
     labels:

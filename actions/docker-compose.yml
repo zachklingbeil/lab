@@ -1,6 +1,7 @@
 services:
     actions:
         image: myoung34/github-runner
+        container_name: actions
         environment:
             ORG_URL: https://github.com/timefactoryio
             ORG_NAME: timefactoryio

@@ -23,9 +23,14 @@ services:
             - INDEXER_BEACON_RPC_URL=http://lighthouse:5052
             - ETHEREUM_JSONRPC_GETH_TRACE_BY_BLOCK=true
             - DECODE_NOT_A_CONTRACT_CALLS=true
-            - API_V2_ENABLED=true
             - LOGGER_LEVEL=error
             - LOGGER_ROTATE_KEEP=2
+            # - MICROSERVICE_SC_VERIFIER_ENABLED=true
+            # - MICROSERVICE_SC_VERIFIER_URL=grpc://sc-verifier:8051
+            # - MICROSERVICE_SC_VERIFIER_TYPE=eth_bytecode_db
+            # - MICROSERVICE_USER_OPS_INDEXER_ENABLED=true
+            # - MICROSERVICE_USER_OPS_INDEXER_URL=grpc://user-ops-indexer:8051
+            # - MICROSERVICE_USER_OPS_INDEXER_TYPE=grpc
         networks:
             - timefactory
         expose:
@@ -53,10 +58,8 @@ services:
         expose:
             - 8050
         environment:
-            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__ENABLED=true
-            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__ADDR=0.0.0.0:8050
-            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__MAX_BODY_SIZE=2097152
-            - SMART_CONTRACT_VERIFIER__SERVER__GRPC__ENABLED=false
+            - SMART_CONTRACT_VERIFIER__SERVER__HTTP__ENABLED=false
+            - SMART_CONTRACT_VERIFIER__SERVER__GRPC__ENABLED=true
             - SMART_CONTRACT_VERIFIER__SERVER__GRPC__ADDR=0.0.0.0:8051
             - SMART_CONTRACT_VERIFIER__SOLIDITY__ENABLED=true
             - SMART_CONTRACT_VERIFIER__SOLIDITY__COMPILERS_DIR=/tmp/solidity-compilers
@@ -80,21 +83,14 @@ services:
         environment:
             - USER_OPS_INDEXER__INDEXER__RPC_URL=http://geth:8545
             - USER_OPS_INDEXER__DATABASE__CONNECT__URL=postgresql://postgres:${PASSWORD}@postgres:5432/blockscout
-            - USER_OPS_INDEXER__SERVER__HTTP__ENABLED=true
-            - USER_OPS_INDEXER__SERVER__HTTP__ADDR=0.0.0.0:8050
-            - USER_OPS_INDEXER__SERVER__HTTP__MAX_BODY_SIZE=2097152
-            - USER_OPS_INDEXER__SERVER__GRPC__ENABLED=false
+            - USER_OPS_INDEXER__SERVER__HTTP__ENABLED=false
+            - USER_OPS_INDEXER__SERVER__GRPC__ENABLED=true
             - USER_OPS_INDEXER__SERVER__GRPC__ADDR=0.0.0.0:8051
             - USER_OPS_INDEXER__API__MAX_PAGE_SIZE=100
             - USER_OPS_INDEXER__INDEXER__CONCURRENCY=5
             - USER_OPS_INDEXER__INDEXER__ENTRYPOINTS__V06=true
             - USER_OPS_INDEXER__INDEXER__ENTRYPOINTS__V07=true
             - USER_OPS_INDEXER__INDEXER__REALTIME__ENABLED=true
-            - USER_OPS_INDEXER__INDEXER__PAST_RPC_LOGS_INDEXER__ENABLED=true
-            - USER_OPS_INDEXER__INDEXER__PAST_RPC_LOGS_INDEXER__BLOCK_RANGE=1000
-            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__ENABLED=true
-            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__START_BLOCK=-100000
-            - USER_OPS_INDEXER__INDEXER__PAST_DB_LOGS_INDEXER__END_BLOCK=0
             - USER_OPS_INDEXER__DATABASE__CREATE_DATABASE=false
             - USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS=true
             - USER_OPS_INDEXER__METRICS__ENABLED=false
