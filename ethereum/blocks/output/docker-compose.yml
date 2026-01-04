@@ -1,0 +1,20 @@
+services:
+  api:
+    image: timefactory/input
+    container_name: api
+    pull_policy: always
+    restart: always
+    stop_grace_period: 5m
+    environment:
+      - DISABLE_INDEXER=true
+      - API_V2_ENABLED=true
+    networks:
+      - timefactory
+    env_file:
+      - ../.env
+    expose:
+      - 4000
+
+networks:
+  timefactory:
+    external: true
